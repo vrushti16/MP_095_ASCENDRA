@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCENDRA — Admin Console</title>
+  <meta name="description" content="Administrative console and system telemetry portal for the ASCENDRA Educational Adventure Platform.">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+</head>
+<body>
+
+  <!-- Admin Login Overlay -->
+  <div id="loginModal" class="login-screen hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="login-card">
+      <div class="login-header">
+        <h1 id="loginTitle">ASCENDRA Portal</h1>
+        <p>Administrative Access &amp; Monitoring</p>
+      </div>
+
+      <div id="loginError" class="login-alert hidden" role="alert"></div>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="form-group">
+          <label for="loginEmail" class="form-label">Administrator Email</label>
+          <input
+            type="email"
+            id="loginEmail"
+            class="form-control"
+            placeholder="admin@ascendra.edu"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">Password</label>
+          <input
+            type="password"
+            id="loginPassword"
+            class="form-control"
+            placeholder="••••••••••••"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%;">
+          Sign In to Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Authenticated App Container -->
+  <div id="appContainer" class="hidden">
+
+    <!-- Top Fixed Header -->
+    <header class="top-header">
+      <div class="header-brand">
+        <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Toggle Navigation Drawer">
+          ☰
+        </button>
+        <div class="brand-title">
+          <span>🛡️ ASCENDRA</span>
+          <span class="brand-badge">ADMIN CONSOLE</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="globalRefreshBtn" class="btn btn-sm btn-outline" title="Refresh Current Section">
+          🔄 Refresh
+        </button>
+
+        <div class="user-badge">
+          <div class="user-badge-icon">A</div>
+          <span id="currentAdminName">Administrator</span>
+        </div>
+
+        <button id="logoutBtn" class="btn btn-sm btn-outline" title="Sign Out">
+          Sign Out
+        </button>
+      </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+      <nav>
+        <ul class="nav-menu">
+          <li>
+            <a href="#overview" id="nav-overview" class="nav-item active" aria-current="page">
+              <span class="nav-icon">📊</span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#users" id="nav-users" class="nav-item">
+              <span class="nav-icon">👥</span>
+              <span>Users</span>
+            </a>
+          </li>
+          <li>
+            <a href="#analytics" id="nav-analytics" class="nav-item">
+              <span class="nav-icon">📈</span>
+              <span>Game Analytics</span>
+            </a>
+          </li>
+          <li>
+            <a href="#health" id="nav-health" class="nav-item">
+              <span class="nav-icon">🩺</span>
+              <span>AI &amp; System Health</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>ASCENDRA Engine v1.0.0</div>
+        <div class="text-muted">Phase 16 Baseline</div>
+      </div>
+    </aside>
+
+    <div id="navBackdrop" class="nav-backdrop"></div>
+
+    <!-- Main Content Panels -->
+    <main class="main-content">
+
+      <!-- 1. Overview Section -->
+      <section id="section-overview">
+        <div class="section-header">
+          <div>
+            <h2>Platform Overview</h2>
+            <p>Live summary of user population, active quest progression, and cluster health.</p>
+          </div>
+        </div>
+        <div id="overviewContent"></div>
+      </section>
+
+      <!-- 2. Users Management Section -->
+      <section id="section-users" class="hidden">
+        <div class="section-header">
+          <div>
+            <h2>User Management</h2>
+            <p>Audit player profiles, review learning progression, and manage administrative roles.</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-wrapper">
+            <input
+              type="text"
+              id="userSearchInput"
+              class="form-control"
+              placeholder="Search by name or email address..."
+              autocomplete="off"
+            >
+          </div>
+          <div class="filter-select">
+            <select id="userRoleFilter" class="form-control">
+              <option value="">All Roles</option>
+              <option value="player">Players</option>
+              <option value="admin">Administrators</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="usersTableContainer"></div>
+        <div id="userPagination" class="pagination-container"></div>
+      </section>
+
+      <!-- 3. Game Analytics Section -->
+      <section id="section-analytics" class="hidden">
+        <div class="section-header">
+          <div>
+            <h2>Game &amp; Learning Analytics</h2>
+            <p>Authoritative metrics on educational quest completion rates and topic accuracy.</p>
+          </div>
+        </div>
+        <div id="analyticsContent"></div>
+      </section>
+
+      <!-- 4. AI & System Health Section -->
+      <section id="section-health" class="hidden">
+        <div class="section-header">
+          <div>
+            <h2>AI Telemetry &amp; Infrastructure Health</h2>
+            <p>Multi-service cluster diagnostics, Redis cache status, and LLM generation quality metrics.</p>
+          </div>
+        </div>
+        <div id="healthContent"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- User Detail / Role Management Modal -->
+  <div id="userDetailModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modalTitle">Explorer Profile &amp; Inspection</h3>
+        <button id="closeUserModalBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+      </div>
+      <div id="userDetailContent" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/users.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/health.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

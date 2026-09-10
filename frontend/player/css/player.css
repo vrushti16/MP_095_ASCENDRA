@@ -1,0 +1,1530 @@
+/**
+ * ASCENDRA Player Gaming Client Stylesheet
+ * Visual Identity: Cinematic Fantasy RPG
+ * Canvas: #090d16 | Surface: #111a2e | Cards: #16223b
+ * Cyan: #38bdf8 | Violet: #818cf8 | Gold: #f59e0b | Crimson: #ef4444
+ * Text: #f1f5f9 | Secondary: #94a3b8 | Border: #1e293b
+ */
+
+:root {
+  --p-canvas: #090d16;
+  --p-surface: #111a2e;
+  --p-card: #16223b;
+  --p-card-hover: #1c2b4a;
+  --p-border: #1e293b;
+  --p-border-glow: #38bdf8;
+  --p-cyan: #38bdf8;
+  --p-cyan-glow: rgba(56, 189, 248, 0.35);
+  --p-violet: #818cf8;
+  --p-violet-glow: rgba(129, 140, 248, 0.3);
+  --p-gold: #f59e0b;
+  --p-gold-glow: rgba(245, 158, 11, 0.3);
+  --p-crimson: #ef4444;
+  --p-text: #f1f5f9;
+  --p-text-muted: #94a3b8;
+  --p-text-dim: #64748b;
+  --p-radius: 8px;
+  --p-radius-lg: 14px;
+  --p-sidebar-width: 240px;
+  --p-header-height: 68px;
+  --p-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cinzel", Georgia, serif;
+  --p-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Reset & Base Setup */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.player-body {
+  font-family: var(--p-font-ui);
+  background-color: var(--p-canvas);
+  color: var(--p-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--p-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--p-cyan);
+}
+
+/* Utility Classes */
+.hidden {
+  display: none !important;
+}
+
+.text-cyan { color: var(--p-cyan) !important; }
+.text-violet { color: var(--p-violet) !important; }
+.text-gold { color: var(--p-gold) !important; }
+.text-crimson { color: var(--p-crimson) !important; }
+.text-muted { color: var(--p-text-muted); }
+.small { font-size: 0.8125rem; }
+
+/* Game Buttons */
+.game-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--p-font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--p-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.game-btn-cta {
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  color: #090d16;
+  font-weight: 700;
+  box-shadow: 0 0 16px var(--p-cyan-glow);
+}
+
+.game-btn-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.6);
+}
+
+.game-btn-primary {
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  color: #ffffff;
+}
+
+.game-btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+  box-shadow: 0 0 14px var(--p-violet-glow);
+}
+
+.game-btn-outline {
+  background: transparent;
+  border-color: #334155;
+  color: var(--p-text);
+}
+
+.game-btn-outline:hover {
+  border-color: var(--p-cyan);
+  color: var(--p-cyan);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.game-btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--p-cyan);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* Progress Bars */
+.game-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.game-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.glow-cyan {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  box-shadow: 0 0 8px var(--p-cyan-glow);
+}
+
+.glow-violet {
+  background: linear-gradient(90deg, #4f46e5, #818cf8);
+  box-shadow: 0 0 8px var(--p-violet-glow);
+}
+
+.fill-crimson {
+  background: linear-gradient(90deg, #b91c1c, #ef4444);
+}
+
+.fill-gold {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+
+/* ==========================================================================
+   1. Fullscreen Gaming Splash Screen
+   ========================================================================== */
+.player-splash-screen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #111a2e 0%, #090d16 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  transition: opacity 0.5s ease;
+  overflow: hidden;
+}
+
+.player-splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-particles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ember-particle {
+  position: absolute;
+  bottom: -10px;
+  background: radial-gradient(circle, #38bdf8 20%, rgba(56, 189, 248, 0) 80%);
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-105vh) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.splash-center-card {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 580px;
+  padding: 2.5rem;
+}
+
+.splash-emblem {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  animation: emblemPulse 3s ease-in-out infinite;
+}
+
+@keyframes emblemPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px var(--p-cyan-glow)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.7)); }
+}
+
+.splash-title {
+  font-family: var(--p-font);
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.25rem;
+}
+
+.splash-subtitle {
+  font-family: var(--p-font);
+  font-size: 1rem;
+  letter-spacing: 0.35em;
+  color: var(--p-cyan);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.splash-quote {
+  font-size: 1rem;
+  color: var(--p-text-muted);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.splash-progress-group {
+  margin-bottom: 1.75rem;
+}
+
+.splash-status-text {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted);
+  margin-top: 0.5rem;
+}
+
+/* ==========================================================================
+   2. Main HUD Header
+   ========================================================================== */
+.player-hud-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--p-header-height);
+  background: rgba(17, 26, 46, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--p-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  z-index: 40;
+}
+
+.hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hud-logo {
+  font-family: var(--p-font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-realm-tag {
+  font-size: 0.6875rem;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--p-cyan);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.hud-player-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.hud-vitality-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vitality-heart {
+  font-size: 1rem;
+}
+
+.vitality-bar-wrap {
+  width: 100px;
+}
+
+.hud-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.85rem;
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: 999px;
+}
+
+.hud-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-player-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-player-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.hud-player-lvl {
+  font-size: 0.6875rem;
+  color: var(--p-cyan);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   3. Fantasy Sidebar Navigation
+   ========================================================================== */
+.player-sidebar {
+  width: var(--p-sidebar-width);
+  background: rgba(17, 26, 46, 0.95);
+  border-right: 1px solid var(--p-border);
+  position: fixed;
+  top: var(--p-header-height);
+  bottom: 0;
+  left: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 30;
+}
+
+.player-nav-menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.player-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--p-text-muted);
+  border-radius: var(--p-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.player-nav-item:hover {
+  background: rgba(56, 189, 248, 0.08);
+  color: var(--p-text);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.player-nav-item.active {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%);
+  color: var(--p-cyan);
+  border-color: rgba(56, 189, 248, 0.4);
+  font-weight: 600;
+}
+
+.nav-icon {
+  font-size: 1.15rem;
+}
+
+.sidebar-realm-footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--p-border);
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+}
+
+/* Main Content Area */
+.player-main-content {
+  margin-left: var(--p-sidebar-width);
+  margin-top: var(--p-header-height);
+  padding: 2rem;
+  min-height: calc(100vh - var(--p-header-height));
+}
+
+/* ==========================================================================
+   4. Dominant Adventure Hero Card (Dashboard)
+   ========================================================================== */
+.adventure-hero-card {
+  position: relative;
+  background: radial-gradient(circle at top right, #1e2d4d 0%, #111a2e 80%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: var(--p-radius-lg);
+  padding: 2.25rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(2, 132, 199, 0.15);
+}
+
+.hero-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--p-cyan);
+  margin-bottom: 0.5rem;
+}
+
+.hero-quest-title {
+  font-family: var(--p-font);
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.hero-quest-desc {
+  color: var(--p-text-muted);
+  font-size: 0.9375rem;
+  max-width: 620px;
+  margin-bottom: 1.5rem;
+}
+
+.hero-progress-group {
+  max-width: 480px;
+  margin-bottom: 1.5rem;
+}
+
+.progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: var(--p-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.hero-action-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.difficulty-chip {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+}
+
+.difficulty-chip.easy { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.difficulty-chip.medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.difficulty-chip.hard { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+/* ==========================================================================
+   5. Player Stats & Fantasy Cards Grid
+   ========================================================================== */
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.fantasy-card {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.5rem;
+}
+
+.card-header-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.card-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--p-text-muted);
+}
+
+.level-chip {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: rgba(129, 140, 248, 0.2);
+  color: var(--p-violet);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.health-chip {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.quest-count-chip {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.stat-main-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.stat-unit {
+  font-size: 0.875rem;
+  color: var(--p-text-muted);
+  font-weight: 400;
+}
+
+.card-footer-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+  margin-top: 0.5rem;
+}
+
+.campaign-summary-row {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.campaign-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.camp-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.camp-lbl {
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+}
+
+/* ==========================================================================
+   6. Relic Discoveries Section (Dashboard)
+   ========================================================================== */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-title-row h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.relic-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.relic-card {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.relic-card:hover {
+  border-color: var(--p-cyan);
+  transform: translateY(-2px);
+  background: var(--p-card-hover);
+}
+
+.relic-icon-wrap {
+  font-size: 1.5rem;
+}
+
+.relic-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.relic-quest-tag {
+  font-size: 0.6875rem;
+  color: var(--p-cyan);
+}
+
+.relic-snippet {
+  font-size: 0.75rem;
+  color: var(--p-text-muted);
+  margin-top: 0.35rem;
+}
+
+.empty-relic-vault, .empty-journal-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--p-card);
+  border: 1px dashed var(--p-border);
+  border-radius: var(--p-radius-lg);
+}
+
+.empty-relic-icon, .empty-journal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-subtext {
+  font-size: 0.8125rem;
+  color: var(--p-text-dim);
+  margin: 0.5rem 0 1.25rem;
+}
+
+/* ==========================================================================
+   7. Unity WebGL Hosting Shell (Adventure View)
+   ========================================================================== */
+.adventure-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.shell-quest-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.pulse-dot {
+  color: var(--p-cyan);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.unity-viewport-frame {
+  background: #000000;
+  border: 2px solid #1e293b;
+  border-radius: var(--p-radius-lg);
+  overflow: hidden;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+  margin-bottom: 2rem;
+}
+
+.unity-shell-canvas-mount {
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0f1b33 0%, #050912 85%);
+  position: relative;
+}
+
+.webgl-pending-banner {
+  text-align: center;
+  padding: 2.5rem;
+  max-width: 540px;
+}
+
+.realm-emblem {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.webgl-pending-banner h2 {
+  font-family: var(--p-font);
+  font-size: 1.75rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.webgl-notice-subtext {
+  color: var(--p-text-muted);
+  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+}
+
+.build-pending-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0.85rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.webgl-info-note {
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+}
+
+.adventure-quest-strip {
+  background: var(--p-surface);
+  border-top: 1px solid var(--p-border);
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.strip-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--p-cyan);
+}
+
+.strip-quest-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.strip-quest-desc {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted);
+}
+
+.strip-progress-box {
+  min-width: 200px;
+}
+
+.strip-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--p-text-muted);
+}
+
+.badge-completed {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--p-radius);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Quest Logbook Scroll */
+.quest-selector-panel {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.5rem;
+}
+
+.panel-subheading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--p-text-muted);
+  margin-bottom: 1rem;
+}
+
+.quest-cards-scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.quest-log-card {
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quest-log-card:hover {
+  border-color: var(--p-cyan);
+}
+
+.quest-log-card.selected {
+  border-color: var(--p-cyan);
+  background: rgba(56, 189, 248, 0.05);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
+}
+
+.quest-log-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.quest-category-tag {
+  font-size: 0.6875rem;
+  color: var(--p-text-dim);
+  text-transform: capitalize;
+}
+
+.quest-diff-tag {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.quest-diff-tag.easy { color: #34d399; }
+.quest-diff-tag.medium { color: #fbbf24; }
+.quest-diff-tag.hard { color: #f87171; }
+
+.quest-log-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.quest-log-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+  margin-top: 0.35rem;
+}
+
+/* ==========================================================================
+   8. Inventory & Relic Vault
+   ========================================================================== */
+.inventory-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+}
+
+.inventory-main-panel {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.5rem;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--p-border);
+}
+
+.panel-subtitle {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted);
+  margin-top: 0.2rem;
+}
+
+.inventory-counter {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--p-cyan);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+.inventory-slot {
+  aspect-ratio: 1;
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.inventory-slot.occupied {
+  cursor: pointer;
+}
+
+.inventory-slot.occupied:hover {
+  border-color: var(--p-cyan);
+  transform: translateY(-2px);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.slot-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.slot-name {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.slot-empty-ring {
+  width: 24px;
+  height: 24px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 50%;
+}
+
+.relic-inspector-panel {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.5rem;
+}
+
+.empty-inspector {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--p-text-dim);
+}
+
+.inspector-rune {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.inspector-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--p-cyan);
+}
+
+.inspector-icon {
+  font-size: 2.5rem;
+  margin: 0.5rem 0;
+}
+
+.inspector-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.inspector-quest-tag {
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+}
+
+.inspector-parchment {
+  background: #111a2e;
+  border: 1px solid #334155;
+  border-radius: var(--p-radius);
+  padding: 1rem;
+  margin: 1.25rem 0;
+  position: relative;
+}
+
+.parchment-quote {
+  font-size: 2rem;
+  color: var(--p-cyan);
+  line-height: 0.5;
+  margin-bottom: 0.25rem;
+}
+
+.parchment-text {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.inspector-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  border-top: 1px solid var(--p-border);
+  padding-top: 1rem;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   9. Clue Journal (Archaeological Logbook)
+   ========================================================================== */
+.journal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.journal-count-pill {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+}
+
+.journal-entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.journal-entry-card {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  display: flex;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.journal-entry-card:hover {
+  border-color: #334155;
+}
+
+.journal-entry-card.highlighted {
+  border-color: var(--p-cyan);
+  box-shadow: 0 0 16px var(--p-cyan-glow);
+}
+
+.entry-spine {
+  width: 48px;
+  background: var(--p-surface);
+  border-right: 1px solid var(--p-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 0;
+  gap: 0.5rem;
+}
+
+.entry-rune {
+  color: var(--p-cyan);
+  font-size: 1rem;
+}
+
+.entry-seq {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--p-text-dim);
+}
+
+.entry-body {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+}
+
+.entry-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.entry-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.entry-quest-source {
+  font-size: 0.75rem;
+  color: var(--p-text-muted);
+}
+
+.entry-date {
+  font-size: 0.75rem;
+  color: var(--p-text-dim);
+}
+
+.entry-parchment-content {
+  background: var(--p-surface);
+  border-left: 3px solid var(--p-cyan);
+  padding: 0.85rem 1rem;
+  border-radius: 0 var(--p-radius) var(--p-radius) 0;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+  margin-bottom: 0.85rem;
+}
+
+.entry-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+}
+
+.entry-tag.verified {
+  color: #34d399;
+}
+
+.entry-id-code {
+  color: var(--p-text-dim);
+}
+
+/* ==========================================================================
+   10. Achievement Hall Shell
+   ========================================================================== */
+.achievement-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.achievement-stats-badge {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  color: var(--p-cyan);
+}
+
+.milestone-notice-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--p-radius);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.achievement-card {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.achievement-card.unlocked {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 16px var(--p-gold-glow);
+}
+
+.achievement-card.locked {
+  opacity: 0.6;
+}
+
+.achievement-icon-wrap {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.achievement-body {
+  flex: 1;
+}
+
+.achievement-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.achievement-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.achievement-state-pill {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.achievement-state-pill.unlocked {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.achievement-state-pill.locked {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--p-text-dim);
+}
+
+.achievement-desc {
+  font-size: 0.8125rem;
+  color: var(--p-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.achievement-progress-label {
+  font-size: 0.6875rem;
+  color: var(--p-cyan);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   11. Character Profile Panel
+   ========================================================================== */
+.profile-panel-layout {
+  max-width: 680px;
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 2rem;
+}
+
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--p-border);
+}
+
+.profile-avatar-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-group-game {
+  margin-bottom: 1.25rem;
+}
+
+.form-label-game {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--p-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.form-input-game {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius);
+  color: var(--p-text);
+  outline: none;
+}
+
+.form-input-game:focus {
+  border-color: var(--p-cyan);
+  box-shadow: 0 0 0 2px var(--p-cyan-glow);
+}
+
+/* ==========================================================================
+   12. Authentication Modal Dialog
+   ========================================================================== */
+.player-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 9, 18, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 600;
+}
+
+.player-modal-card {
+  background: var(--p-card);
+  border: 1px solid #334155;
+  border-radius: var(--p-radius-lg);
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.8);
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  position: relative;
+}
+
+.modal-header-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--p-border);
+  margin-bottom: 1.5rem;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--p-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.6rem 0;
+  cursor: pointer;
+}
+
+.auth-tab-btn.active {
+  color: var(--p-cyan);
+  border-bottom-color: var(--p-cyan);
+}
+
+.player-alert {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--p-radius);
+  font-size: 0.8125rem;
+  margin-bottom: 1.25rem;
+}
+
+.alert-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.alert-info {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #7dd3fc;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--p-text-dim);
+  font-size: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--p-border);
+}
+
+.auth-divider span {
+  padding: 0 0.5rem;
+}
+
+.google-auth-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: var(--p-surface);
+  border: 1px solid var(--p-border);
+  color: var(--p-text);
+  padding: 0.6rem;
+  border-radius: var(--p-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.google-auth-btn:hover {
+  border-color: #475569;
+  background: #1a2744;
+}
+
+/* Loading & Error States */
+.player-loading-state, .player-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: var(--p-text-muted);
+}
+
+.player-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #1e293b;
+  border-top-color: var(--p-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-rune {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}

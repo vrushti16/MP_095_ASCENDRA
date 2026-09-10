@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCENDRA — The Lost Realms</title>
+  <meta name="description" content="Embark on an educational fantasy adventure exploring ancient ruins, deciphering runes, and unearthing hidden mechanisms.">
+  <link rel="stylesheet" href="css/player.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
+</head>
+<body class="player-body">
+
+  <!-- ========================================================================
+       1. Fullscreen Gaming Splash Screen
+       ======================================================================== -->
+  <div id="playerSplashOverlay" class="player-splash-screen" role="dialog" aria-modal="true">
+    <div id="splashParticles" class="splash-particles-container"></div>
+
+    <div class="splash-center-card">
+      <div class="splash-emblem">🛡️</div>
+      <h1 class="splash-title">ASCENDRA</h1>
+      <div class="splash-subtitle">THE LOST REALMS</div>
+      <p class="splash-quote">“Your adventure begins.”</p>
+
+      <div id="splashProgressContainer" class="splash-progress-group">
+        <div class="game-progress-bar">
+          <div id="splashProgressBar" class="game-progress-fill glow-cyan" style="width: 20%;"></div>
+        </div>
+        <div id="splashStatusText" class="splash-status-text">Attuning expedition data...</div>
+      </div>
+
+      <button id="splashEnterBtn" class="game-btn game-btn-cta hidden">
+        ENTER ASCENDRA
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. Main Authenticated Player Hub Container
+       ======================================================================== -->
+  <div id="playerAppContainer" class="hidden">
+
+    <!-- Top Fixed Fantasy HUD Header -->
+    <header class="player-hud-header">
+      <div class="hud-brand">
+        <button id="playerMobileToggle" class="player-mobile-toggle" aria-label="Toggle Expedition Menu">
+          ☰
+        </button>
+        <div class="hud-logo">
+          <span>⚔️ ASCENDRA</span>
+          <span class="hud-realm-tag">LOST REALMS</span>
+        </div>
+      </div>
+
+      <div class="hud-player-strip">
+        <div class="hud-vitality-meter" title="Expedition Vitality">
+          <span class="vitality-heart">❤️</span>
+          <div class="vitality-bar-wrap game-progress-bar">
+            <div id="headerHealthBar" class="game-progress-fill fill-crimson" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="hud-player-chip" onclick="playerApp.navigateTo('profile')">
+          <div class="hud-avatar">E</div>
+          <div class="hud-player-info">
+            <span id="headerPlayerName" class="hud-player-name">Explorer</span>
+            <span id="headerPlayerLevel" class="hud-player-lvl">LVL 1</span>
+          </div>
+        </div>
+
+        <button id="playerLogoutBtn" class="game-btn game-btn-sm game-btn-outline" title="Leave Realm">
+          Exit Realm
+        </button>
+      </div>
+    </header>
+
+    <!-- Left Navigation HUD Sidebar -->
+    <aside id="playerSidebar" class="player-sidebar">
+      <nav>
+        <ul class="player-nav-menu">
+          <li>
+            <a href="#home" id="player-nav-dashboard" class="player-nav-item active" aria-current="page">
+              <span class="nav-icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+          <li>
+            <a href="#adventure" id="player-nav-adventure" class="player-nav-item">
+              <span class="nav-icon">🗺️</span>
+              <span>Adventure</span>
+            </a>
+          </li>
+          <li>
+            <a href="#inventory" id="player-nav-inventory" class="player-nav-item">
+              <span class="nav-icon">🎒</span>
+              <span>Inventory</span>
+            </a>
+          </li>
+          <li>
+            <a href="#clues" id="player-nav-clues" class="player-nav-item">
+              <span class="nav-icon">🔍</span>
+              <span>Journal</span>
+            </a>
+          </li>
+          <li>
+            <a href="#achievements" id="player-nav-achievements" class="player-nav-item">
+              <span class="nav-icon">🏆</span>
+              <span>Achievements</span>
+            </a>
+          </li>
+          <li>
+            <a href="#profile" id="player-nav-profile" class="player-nav-item">
+              <span class="nav-icon">👤</span>
+              <span>Character</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-realm-footer">
+        <div>ASCENDRA Adventure Engine</div>
+        <div>Phase 17 Player Edition</div>
+      </div>
+    </aside>
+
+    <div id="playerBackdrop" class="player-backdrop"></div>
+
+    <!-- Main Content Panels -->
+    <main class="player-main-content">
+
+      <!-- Section 1: Dashboard Home -->
+      <section id="player-section-dashboard">
+        <div id="dashboardContent"></div>
+      </section>
+
+      <!-- Section 2: Adventure & WebGL Hosting Shell -->
+      <section id="player-section-adventure" class="hidden">
+        <div id="adventureContent"></div>
+      </section>
+
+      <!-- Section 3: Inventory & Relics Shell -->
+      <section id="player-section-inventory" class="hidden">
+        <div id="inventoryContent"></div>
+      </section>
+
+      <!-- Section 4: Archaeological Clue Journal -->
+      <section id="player-section-clues" class="hidden">
+        <div id="cluesContent"></div>
+      </section>
+
+      <!-- Section 5: Progression Achievements Hall -->
+      <section id="player-section-achievements" class="hidden">
+        <div id="achievementsContent"></div>
+      </section>
+
+      <!-- Section 6: Character Profile Panel -->
+      <section id="player-section-profile" class="hidden">
+        <div class="profile-panel-layout">
+          <div class="profile-avatar-row">
+            <div class="profile-avatar-large">⚔️</div>
+            <div>
+              <h2 id="profileLevelDisplay">Explorer Profile</h2>
+              <p class="panel-subtitle">Manage your player identity and review personal campaign standing.</p>
+            </div>
+          </div>
+
+          <div id="profileStatusMsg"></div>
+
+          <form id="playerProfileForm">
+            <div class="form-group-game">
+              <label class="form-label-game" for="profileDisplayName">Explorer Call-Sign</label>
+              <input type="text" id="profileDisplayName" class="form-input-game" required>
+            </div>
+
+            <div class="form-group-game">
+              <label class="form-label-game">Account Email</label>
+              <div id="profileEmailDisplay" class="text-muted small"></div>
+            </div>
+
+            <div class="form-group-game">
+              <label class="form-label-game">Player Authority</label>
+              <div id="profileRoleDisplay" class="text-cyan small">PLAYER</div>
+            </div>
+
+            <div class="form-group-game">
+              <label class="form-label-game">Expedition Standing</label>
+              <div class="card-footer-meta" style="margin-top: 0.25rem;">
+                <span>Score: <strong id="profileScoreDisplay" class="text-gold">0 pts</strong></span>
+                <span>Experience: <strong id="profileXpDisplay" class="text-violet">0 XP</strong></span>
+                <span>Joined: <span id="profileCreatedDisplay">N/A</span></span>
+              </div>
+            </div>
+
+            <button type="submit" class="game-btn game-btn-primary" style="margin-top: 1rem;">
+              Update Identity
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       3. Player Authentication Modal Dialog
+       ======================================================================== -->
+  <div id="playerAuthModal" class="player-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="player-modal-card">
+      <div class="modal-header-tabs">
+        <button id="tabSigninBtn" class="auth-tab-btn active">Sign In</button>
+        <button id="tabRegisterBtn" class="auth-tab-btn">Register</button>
+      </div>
+
+      <div id="authAlert" class="player-alert hidden" role="alert"></div>
+
+      <!-- Sign In Form -->
+      <form id="signinForm">
+        <div class="form-group-game">
+          <label class="form-label-game" for="signinEmail">Email Address</label>
+          <input type="email" id="signinEmail" class="form-input-game" placeholder="explorer@ascendra.edu" required autocomplete="email">
+        </div>
+
+        <div class="form-group-game">
+          <label class="form-label-game" for="signinPassword">Password</label>
+          <input type="password" id="signinPassword" class="form-input-game" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="signinSubmitBtn" class="game-btn game-btn-cta" style="width: 100%;">
+          Enter ASCENDRA
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="hidden">
+        <div class="form-group-game">
+          <label class="form-label-game" for="registerName">Explorer Name</label>
+          <input type="text" id="registerName" class="form-input-game" placeholder="Aric the Seeker" required autocomplete="name">
+        </div>
+
+        <div class="form-group-game">
+          <label class="form-label-game" for="registerEmail">Email Address</label>
+          <input type="email" id="registerEmail" class="form-input-game" placeholder="explorer@ascendra.edu" required autocomplete="email">
+        </div>
+
+        <div class="form-group-game">
+          <label class="form-label-game" for="registerPassword">Password (6+ chars)</label>
+          <input type="password" id="registerPassword" class="form-input-game" placeholder="••••••••••••" required autocomplete="new-password">
+        </div>
+
+        <button type="submit" id="registerSubmitBtn" class="game-btn game-btn-cta" style="width: 100%;">
+          Begin Adventure
+        </button>
+      </form>
+
+      <div class="auth-divider">
+        <span>OR</span>
+      </div>
+
+      <button id="googleLoginBtn" class="google-auth-btn" type="button">
+        <span>G</span> Continue with Google
+      </button>
+    </div>
+  </div>
+
+  <!-- Client JavaScript Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/splash.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/adventure.js"></script>
+  <script src="js/inventory.js"></script>
+  <script src="js/clues.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
