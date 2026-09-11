@@ -47,9 +47,8 @@ const playerAuth = {
       this.showModal('Your session has ended. Please sign in to resume your adventure.');
     });
 
-    // Initialize Authentication Providers
+    // Initialize Firebase Authentication
     this.initFirebaseAuth();
-    this.initGoogleIdentityServices();
   },
 
   switchTab(tab) {
@@ -185,97 +184,7 @@ const playerAuth = {
     }
   },
 
-  initGoogleIdentityServices() {
-    if (this.gisInitialized) return;
-    const clientId = window.ASCENDRA_PLAYER_CONFIG?.GOOGLE_CLIENT_ID;
-    if (!clientId) return;
-
-    const setupGis = () => {
-      if (this.gisInitialized) return true;
-      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
-        return false;
-      }
-
-      try {
-        this.gisInitialized = true;
-        google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => this.handleGoogleCredentialResponse(response),
-          auto_select: false,
-          cancel_on_tap_outside: true,
-          use_fedcm_for_prompt: true
-        });
-
-        const container = document.getElementById('googleButtonContainer');
-        if (container) {
-          google.accounts.id.renderButton(container, {
-            type: 'standard',
-            shape: 'rectangular',
-            theme: 'filled_blue',
-            text: 'continue_with',
-            size: 'large',
-            logo_alignment: 'left',
-            width: 320
-          });
-
-          // Only hide the custom button if GIS successfully rendered an iframe
-          setTimeout(() => {
-            const hasIframe = container.querySelector('iframe');
-            if (hasIframe && this.googleLoginBtn) {
-              this.googleLoginBtn.classList.add('hidden');
-            }
-          }, 500);
-        }
-        return true;
-      } catch (err) {
-        console.warn('GIS initialization notice:', err);
-        return false;
-      }
-    };
-
-    if (!setupGis()) {
-      setTimeout(setupGis, 300);
-    }
-  },
-
-  async handleGoogleCredentialResponse(response) {
-    if (!response || !response.credential) {
-      this.showAlert('Google Sign-In did not return an identity token.', 'danger');
-      return;
-    }
-
-    this.showAlert('Attuning explorer credentials with Google...', 'info');
-
-    try {
-      // Optional Firebase state sync if Firebase SDK loaded
-      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-        try {
-          const cred = firebase.auth.GoogleAuthProvider.credential(response.credential);
-          await firebase.auth().signInWithCredential(cred);
-        } catch (fbErr) {
-          console.warn('Firebase state sync notice:', fbErr.message);
-        }
-      }
-
-      // Verify Google ID token with backend API and issue game session
-      const data = await window.playerApi.loginWithGoogle(response.credential);
-      window.playerApi.setSession({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken
-      }, data.user);
-
-      this.hideModal();
-      if (window.playerApp) {
-        window.playerApp.onAuthenticated(data.user);
-      }
-    } catch (err) {
-      console.error('Google Sign-In Error:', err);
-      this.showAlert(err.message || 'Google authentication could not be completed.', 'danger');
-    }
-  },
-
   async handleGoogleLogin() {
-    // Directly launch Firebase Google popup
     await this.triggerFirebasePopupLogin();
   },
 

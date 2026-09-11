@@ -9,10 +9,10 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware'
 
 const app = express();
 
-// Security HTTP headers (COOP same-origin-allow-popups permits Google OAuth popups)
+// Security HTTP headers (COOP disabled to allow seamless popup postMessage communication)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  crossOriginOpenerPolicy: false,
   contentSecurityPolicy: false
 }));
 
