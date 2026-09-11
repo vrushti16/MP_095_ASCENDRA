@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { query, getClient } = require('../config/database');
 const {
   generateAccessToken,
@@ -10,6 +12,27 @@ const {
 
 // Initialize Google OAuth2 client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// In-memory cache for Firebase Auth public certificates
+let firebaseCertsCache = null;
+let firebaseCertsExpiry = 0;
+
+async function getFirebasePublicCert(kid) {
+  const now = Date.now();
+  if (!firebaseCertsCache || now > firebaseCertsExpiry) {
+    try {
+      const res = await axios.get(
+        'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com',
+        { timeout: 5000 }
+      );
+      firebaseCertsCache = res.data;
+      firebaseCertsExpiry = now + 3600 * 1000;
+    } catch (err) {
+      console.error('⚠️ [AUTH] Failed to fetch Firebase public certs:', err.message);
+    }
+  }
+  return firebaseCertsCache ? firebaseCertsCache[kid] : null;
+}
 
 /**
  * Custom application error with HTTP status code and custom error code
@@ -24,7 +47,7 @@ class AuthError extends Error {
 }
 
 /**
- * Verify Google ID Token server-side and extract verified identity claims
+ * Verify Google ID Token server-side (supports both Firebase Web Auth & Google OAuth2 tokens)
  * @param {string} idToken
  * @returns {Promise<{ googleId: string, email: string, name: string, avatarUrl: string }>}
  */
@@ -39,6 +62,40 @@ async function verifyGoogleIdToken(idToken) {
     throw new AuthError('GOOGLE_CLIENT_ID is not configured on server', 'SERVER_CONFIG_ERROR', 500);
   }
 
+  // 1. Inspect token header and claims
+  const decoded = jwt.decode(idToken, { complete: true });
+  const kid = decoded?.header?.kid;
+  const isFirebaseToken = decoded?.payload?.iss?.includes('securetoken.google.com');
+
+  // 2. If it is a Firebase ID Token, verify with Firebase public certificate
+  if (isFirebaseToken && kid) {
+    const cert = await getFirebasePublicCert(kid);
+    if (cert) {
+      try {
+        const payload = jwt.verify(idToken, cert, {
+          algorithms: ['RS256'],
+          audience: firebaseProjectId,
+          issuer: `https://securetoken.google.com/${firebaseProjectId}`
+        });
+
+        if (!payload || !payload.sub || !payload.email) {
+          throw new AuthError('Invalid Firebase Google token payload', 'INVALID_GOOGLE_TOKEN', 401);
+        }
+
+        return {
+          googleId: payload.sub,
+          email: payload.email.toLowerCase(),
+          name: payload.name || payload.email.split('@')[0],
+          avatarUrl: payload.picture || null
+        };
+      } catch (fbErr) {
+        if (fbErr instanceof AuthError) throw fbErr;
+        console.warn('⚠️ [AUTH] Firebase JWT verify error:', fbErr.message);
+      }
+    }
+  }
+
+  // 3. Otherwise verify via Google OAuth2 Client
   const allowedAudiences = [clientId, firebaseProjectId].filter(Boolean);
 
   try {
@@ -60,6 +117,30 @@ async function verifyGoogleIdToken(idToken) {
     };
   } catch (err) {
     if (err instanceof AuthError) throw err;
+
+    // Fallback: If googleClient failed due to missing pem and kid exists, attempt Firebase cert verification
+    if (kid && err.message.includes('No pem found')) {
+      const cert = await getFirebasePublicCert(kid);
+      if (cert) {
+        try {
+          const payload = jwt.verify(idToken, cert, {
+            algorithms: ['RS256']
+          });
+
+          if (payload && payload.sub && payload.email) {
+            return {
+              googleId: payload.sub,
+              email: payload.email.toLowerCase(),
+              name: payload.name || payload.email.split('@')[0],
+              avatarUrl: payload.picture || null
+            };
+          }
+        } catch (fallbackErr) {
+          console.warn('⚠️ [AUTH] Fallback Firebase cert verification failed:', fallbackErr.message);
+        }
+      }
+    }
+
     throw new AuthError(`Google token verification failed: ${err.message}`, 'INVALID_GOOGLE_TOKEN', 401);
   }
 }
