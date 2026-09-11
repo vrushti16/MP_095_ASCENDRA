@@ -186,15 +186,18 @@ const playerAuth = {
   },
 
   initGoogleIdentityServices() {
+    if (this.gisInitialized) return;
     const clientId = window.ASCENDRA_PLAYER_CONFIG?.GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
     const setupGis = () => {
+      if (this.gisInitialized) return true;
       if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
         return false;
       }
 
       try {
+        this.gisInitialized = true;
         google.accounts.id.initialize({
           client_id: clientId,
           callback: (response) => this.handleGoogleCredentialResponse(response),
@@ -215,21 +218,23 @@ const playerAuth = {
             width: 320
           });
 
-          // Official GIS button rendered; hide fallback button to avoid redundant buttons
-          if (this.googleLoginBtn) {
-            this.googleLoginBtn.classList.add('hidden');
-          }
+          // Only hide the custom button if GIS successfully rendered an iframe
+          setTimeout(() => {
+            const hasIframe = container.querySelector('iframe');
+            if (hasIframe && this.googleLoginBtn) {
+              this.googleLoginBtn.classList.add('hidden');
+            }
+          }, 500);
         }
         return true;
       } catch (err) {
-        console.warn('GIS initialization error:', err);
+        console.warn('GIS initialization notice:', err);
         return false;
       }
     };
 
     if (!setupGis()) {
       setTimeout(setupGis, 300);
-      setTimeout(setupGis, 1200);
     }
   },
 
@@ -270,17 +275,7 @@ const playerAuth = {
   },
 
   async handleGoogleLogin() {
-    // 1. If Google Identity Services is available, prompt One Tap / GIS
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          this.triggerFirebasePopupLogin();
-        }
-      });
-      return;
-    }
-
-    // 2. Fall back to Firebase popup authentication
+    // Directly launch Firebase Google popup
     await this.triggerFirebasePopupLogin();
   },
 
