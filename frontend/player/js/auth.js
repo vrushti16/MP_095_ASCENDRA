@@ -211,6 +211,7 @@ const playerAuth = {
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
+      provider.setCustomParameters({ prompt: 'select_account' });
 
       const result = await firebase.auth().signInWithPopup(provider);
 
@@ -229,6 +230,12 @@ const playerAuth = {
       this.hideModal();
       if (window.playerApp) {
         window.playerApp.onAuthenticated(data.user);
+      }
+
+      // Clear transient popup polling notices from DevTools console
+      if (typeof console !== 'undefined' && console.clear) {
+        console.clear();
+        console.log(`⚔️ Welcome to ASCENDRA, ${data.user.name}! Expedition session attuned.`);
       }
     } catch (err) {
       console.error('Firebase Google Sign-In Error:', err);
