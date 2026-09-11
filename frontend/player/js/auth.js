@@ -46,6 +46,10 @@ const playerAuth = {
     window.addEventListener('player:unauthorized', () => {
       this.showModal('Your session has ended. Please sign in to resume your adventure.');
     });
+
+    // Initialize Authentication Providers
+    this.initFirebaseAuth();
+    this.initGoogleIdentityServices();
   },
 
   switchTab(tab) {
@@ -167,8 +171,173 @@ const playerAuth = {
     }
   },
 
+  async initFirebaseAuth() {
+    if (typeof firebase === 'undefined') return;
+    const config = window.ASCENDRA_PLAYER_CONFIG?.FIREBASE_CONFIG;
+    if (!config || !config.apiKey) return;
+
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+      }
+    } catch (err) {
+      console.warn('Firebase initialization notice:', err.message);
+    }
+  },
+
+  initGoogleIdentityServices() {
+    const clientId = window.ASCENDRA_PLAYER_CONFIG?.GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const setupGis = () => {
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+        return false;
+      }
+
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => this.handleGoogleCredentialResponse(response),
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: true
+        });
+
+        const container = document.getElementById('googleButtonContainer');
+        if (container) {
+          google.accounts.id.renderButton(container, {
+            type: 'standard',
+            shape: 'rectangular',
+            theme: 'filled_blue',
+            text: 'continue_with',
+            size: 'large',
+            logo_alignment: 'left',
+            width: 320
+          });
+
+          // Official GIS button rendered; hide fallback button to avoid redundant buttons
+          if (this.googleLoginBtn) {
+            this.googleLoginBtn.classList.add('hidden');
+          }
+        }
+        return true;
+      } catch (err) {
+        console.warn('GIS initialization error:', err);
+        return false;
+      }
+    };
+
+    if (!setupGis()) {
+      setTimeout(setupGis, 300);
+      setTimeout(setupGis, 1200);
+    }
+  },
+
+  async handleGoogleCredentialResponse(response) {
+    if (!response || !response.credential) {
+      this.showAlert('Google Sign-In did not return an identity token.', 'danger');
+      return;
+    }
+
+    this.showAlert('Attuning explorer credentials with Google...', 'info');
+
+    try {
+      // Optional Firebase state sync if Firebase SDK loaded
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+        try {
+          const cred = firebase.auth.GoogleAuthProvider.credential(response.credential);
+          await firebase.auth().signInWithCredential(cred);
+        } catch (fbErr) {
+          console.warn('Firebase state sync notice:', fbErr.message);
+        }
+      }
+
+      // Verify Google ID token with backend API and issue game session
+      const data = await window.playerApi.loginWithGoogle(response.credential);
+      window.playerApi.setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken
+      }, data.user);
+
+      this.hideModal();
+      if (window.playerApp) {
+        window.playerApp.onAuthenticated(data.user);
+      }
+    } catch (err) {
+      console.error('Google Sign-In Error:', err);
+      this.showAlert(err.message || 'Google authentication could not be completed.', 'danger');
+    }
+  },
+
   async handleGoogleLogin() {
-    this.showAlert('Google Sign-In integration ready. When Google Client SDK token is present, it will verify with /auth/google.', 'info');
+    // 1. If Google Identity Services is available, prompt One Tap / GIS
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          this.triggerFirebasePopupLogin();
+        }
+      });
+      return;
+    }
+
+    // 2. Fall back to Firebase popup authentication
+    await this.triggerFirebasePopupLogin();
+  },
+
+  async triggerFirebasePopupLogin() {
+    if (typeof firebase === 'undefined') {
+      this.showAlert('Authentication service is loading. Please check network connectivity.', 'warning');
+      return;
+    }
+
+    const config = window.ASCENDRA_PLAYER_CONFIG?.FIREBASE_CONFIG;
+    if (!config || !config.apiKey) {
+      this.showAlert('Firebase Web API Key is pending in frontend/player/config.js.', 'warning');
+      return;
+    }
+
+    this.setButtonLoading(this.googleLoginBtn, true, 'Opening Google...');
+    this.hideAlert();
+
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+
+      const result = await firebase.auth().signInWithPopup(provider);
+
+      this.setButtonLoading(this.googleLoginBtn, true, 'Attuning explorer credentials...');
+
+      // Extract verified Google ID token
+      const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+      const idToken = credential?.idToken || (await result.user.getIdToken());
+
+      const data = await window.playerApi.loginWithGoogle(idToken);
+      window.playerApi.setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken
+      }, data.user);
+
+      this.hideModal();
+      if (window.playerApp) {
+        window.playerApp.onAuthenticated(data.user);
+      }
+    } catch (err) {
+      console.error('Firebase Google Sign-In Error:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        this.showAlert('Google Sign-In was closed. If the popup was blank, click the 👁️ (eye icon) in the popup address bar to allow cookies, or use the Google Sign-In button.', 'warning');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        this.showAlert('This domain is not authorized in Firebase Console -> Authentication -> Authorised domains.', 'danger');
+      } else {
+        this.showAlert(err.message || 'Google authentication could not be completed.', 'danger');
+      }
+    } finally {
+      this.setButtonLoading(this.googleLoginBtn, false, 'Continue with Google');
+    }
   },
 
   async logout() {

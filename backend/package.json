@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "db:migrate": "node ../database/scripts/migrate.js",
     "db:seed": "node ../database/scripts/seed.js",
-    "test": "jest --detectOpenHandles"
+    "db:seed:demo": "node ../database/scripts/seed-demo.js",
+    "test": "jest --detectOpenHandles --runInBand"
   },
   "keywords": [
     "ascendra",

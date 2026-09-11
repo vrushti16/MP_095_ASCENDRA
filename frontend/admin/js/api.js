@@ -3,7 +3,9 @@
  * Centralized fetch client with token injection, error handling, and endpoint methods.
  */
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = (typeof window !== 'undefined' && window.ASCENDRA_ADMIN_CONFIG && window.ASCENDRA_ADMIN_CONFIG.API_BASE_URL)
+  || (typeof window !== 'undefined' && window.ASCENDRA_CONFIG && window.ASCENDRA_CONFIG.API_BASE_URL)
+  || '/api/v1';
 
 class ApiClient {
   constructor() {

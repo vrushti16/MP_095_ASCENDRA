@@ -9,9 +9,10 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware'
 
 const app = express();
 
-// Security HTTP headers (CSP disabled for local dashboard static assets and fonts)
+// Security HTTP headers (COOP same-origin-allow-popups permits Google OAuth popups)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   contentSecurityPolicy: false
 }));
 

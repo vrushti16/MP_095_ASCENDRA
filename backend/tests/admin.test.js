@@ -296,8 +296,8 @@ describe('Admin Backend API Suite (/api/v1/admin)', () => {
     });
 
     it('should prevent demoting the last remaining administrator with 409 Conflict', async () => {
-      // First ensure only one admin exists by demoting secondary admin
-      await query("UPDATE users SET role = 'player' WHERE id = $1;", [testSecondaryAdmin.id]);
+      // First ensure only one admin exists by demoting all other admins
+      await query("UPDATE users SET role = 'player' WHERE role = 'admin' AND id != $1;", [testAdminUser.id]);
 
       // Attempt to demote the sole remaining admin
       const res = await request(app)
@@ -309,8 +309,9 @@ describe('Admin Backend API Suite (/api/v1/admin)', () => {
       expect(res.body.error.code).toBe('LAST_ADMIN_DEMOTION_FORBIDDEN');
       expect(res.body.error.message).toContain('Cannot demote the last remaining administrator');
 
-      // Restore secondary admin
+      // Restore secondary admin and seeded admin
       await query("UPDATE users SET role = 'admin' WHERE id = $1;", [testSecondaryAdmin.id]);
+      await query("UPDATE users SET role = 'admin' WHERE email = 'admin@ascendra.edu';");
     });
   });
 

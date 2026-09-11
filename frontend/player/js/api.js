@@ -4,7 +4,9 @@
  * session management, error normalization, and reactive unauthorized dispatch.
  */
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = (typeof window !== 'undefined' && window.ASCENDRA_PLAYER_CONFIG && window.ASCENDRA_PLAYER_CONFIG.API_BASE_URL)
+  || (typeof window !== 'undefined' && window.ASCENDRA_CONFIG && window.ASCENDRA_CONFIG.API_BASE_URL)
+  || '/api/v1';
 
 class PlayerApiClient {
   constructor() {
@@ -140,6 +142,11 @@ class PlayerApiClient {
       method: 'POST',
       body: { refreshToken }
     });
+    return res.data;
+  }
+
+  async getAuthConfig() {
+    const res = await this.request('/auth/config');
     return res.data;
   }
 

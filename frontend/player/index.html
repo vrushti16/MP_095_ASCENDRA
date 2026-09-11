@@ -257,13 +257,25 @@
         <span>OR</span>
       </div>
 
+      <!-- Official Google Identity Services Button Container (no third-party cookie restrictions) -->
+      <div id="googleButtonContainer" class="google-gis-container"></div>
+
+      <!-- Fallback custom button -->
       <button id="googleLoginBtn" class="google-auth-btn" type="button">
         <span>G</span> Continue with Google
       </button>
     </div>
   </div>
 
+  <!-- Google Identity Services (GIS) SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Firebase Web Authentication SDK (v10 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
   <!-- Client JavaScript Modules -->
+  <script src="config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/splash.js"></script>

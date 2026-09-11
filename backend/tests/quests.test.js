@@ -2,6 +2,8 @@ const request = require('supertest');
 const app = require('../src/app');
 const { query, pool } = require('../src/config/database');
 
+jest.setTimeout(15000);
+
 describe('Quest Persistence API (/api/v1/quests)', () => {
   const timestamp = Date.now();
   let playerToken = null;

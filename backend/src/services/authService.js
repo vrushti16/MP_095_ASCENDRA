@@ -34,14 +34,17 @@ async function verifyGoogleIdToken(idToken) {
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  const firebaseProjectId = process.env.FIREBASE_PROJECT_ID || 'mp095-49fcb';
   if (!clientId) {
     throw new AuthError('GOOGLE_CLIENT_ID is not configured on server', 'SERVER_CONFIG_ERROR', 500);
   }
 
+  const allowedAudiences = [clientId, firebaseProjectId].filter(Boolean);
+
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: clientId
+      audience: allowedAudiences.length > 1 ? allowedAudiences : clientId
     });
 
     const payload = ticket.getPayload();

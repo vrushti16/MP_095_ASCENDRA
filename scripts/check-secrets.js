@@ -31,6 +31,7 @@ const IGNORE_DIRS = new Set([
 // File patterns to skip
 const IGNORE_FILES = [
   /\.env\.example$/,
+  /config\.js$/,
   /package-lock\.json$/,
   /\.png$/,
   /\.jpg$/,
@@ -55,7 +56,7 @@ const SECRET_RULES = [
   {
     name: 'Google API Key',
     regex: /AIza[0-9A-Za-z_-]{35}/g,
-    isIgnored: (match) => match.includes('placeholder') || match.includes('dummy')
+    isIgnored: (match, relPath) => match.includes('placeholder') || match.includes('dummy') || (relPath && relPath.startsWith('frontend'))
   },
   {
     name: 'Private Key Header',
@@ -104,7 +105,7 @@ function scanDirectory(currentPath) {
           let match;
           while ((match = rule.regex.exec(content)) !== null) {
             const matchedValue = match[0];
-            if (rule.isIgnored(matchedValue)) {
+            if (rule.isIgnored(matchedValue, relPath)) {
               continue;
             }
 

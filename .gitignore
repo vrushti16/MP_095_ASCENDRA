@@ -115,6 +115,14 @@ backend/node_modules/
 backend/.env
 backend/.env.*
 !backend/.env.example
+
+# Frontend Environment Configuration
+frontend/player/.env
+frontend/player/.env.*
+!frontend/player/.env.example
+frontend/admin/.env
+frontend/admin/.env.*
+!frontend/admin/.env.example
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

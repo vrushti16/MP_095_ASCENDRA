@@ -39,6 +39,17 @@ router.post('/refresh', authController.refresh);
  */
 router.post('/logout', authController.logout);
 
+/**
+ * @route   GET /api/v1/auth/config
+ * @desc    Get public authentication configuration
+ * @access  Public
+ */
+router.get('/config', (req, res) => {
+  return sendSuccess(res, {
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null
+  }, 'Auth configuration retrieved');
+});
+
 // Protected test routes for verification of JWT and Role middleware
 const { authenticateJWT, requireRole } = require('../middleware/authMiddleware');
 const { sendSuccess } = require('../utils/apiResponse');
