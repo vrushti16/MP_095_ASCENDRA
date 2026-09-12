@@ -81,11 +81,13 @@ jobs:
       - name: Install Backend Dependencies
         run: npm install
 
-      - name: Run Database Migrations
+      - name: Run Database Migrations & Seeds
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/ascendra_test
-        run: npm run db:migrate
+        run: |
+          npm run db:migrate
+          npm run db:seed
 
       - name: Run Backend Tests (Jest)
         env:
