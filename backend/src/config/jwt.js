@@ -72,13 +72,51 @@ function getRefreshTokenExpiryDate() {
   return new Date(now + value * multiplier);
 }
 
+const PASSWORD_RESET_TOKEN_EXPIRES_IN = '15m';
+
+/**
+ * Generate a cryptographically signed, short-lived password reset token
+ * Scoped strictly to purpose: 'password_reset'
+ * @param {{ id: string, email: string }} user
+ * @param {string} otpRecordId
+ * @returns {string} signed JWT password reset token
+ */
+function generatePasswordResetToken(user, otpRecordId) {
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    otpId: otpRecordId,
+    purpose: 'password_reset'
+  };
+
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: PASSWORD_RESET_TOKEN_EXPIRES_IN
+  });
+}
+
+/**
+ * Verify and decode a password reset token, asserting strict purpose scoping
+ * @param {string} token
+ * @returns {object} decoded payload
+ */
+function verifyPasswordResetToken(token) {
+  const payload = jwt.verify(token, JWT_SECRET);
+  if (!payload || payload.purpose !== 'password_reset') {
+    throw new Error('Invalid password reset token scope');
+  }
+  return payload;
+}
+
 module.exports = {
   JWT_SECRET,
   JWT_EXPIRES_IN,
   JWT_REFRESH_EXPIRES_IN,
+  PASSWORD_RESET_TOKEN_EXPIRES_IN,
   generateAccessToken,
   verifyAccessToken,
   generateRawRefreshToken,
   hashRefreshToken,
-  getRefreshTokenExpiryDate
+  getRefreshTokenExpiryDate,
+  generatePasswordResetToken,
+  verifyPasswordResetToken
 };

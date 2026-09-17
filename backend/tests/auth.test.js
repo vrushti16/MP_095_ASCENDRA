@@ -86,6 +86,20 @@ describe('Authentication API (/api/v1/auth)', () => {
       expect(res.body.success).toBe(false);
       expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
+
+    it('should reject registration with non-Gmail address', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: 'explorer@yahoo.com',
+          password: 'ValidPassword123!',
+          name: 'Yahoo Explorer'
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('INVALID_GMAIL_DOMAIN');
+    });
   });
 
   describe('2. Login (POST /api/v1/auth/login)', () => {
@@ -135,6 +149,19 @@ describe('Authentication API (/api/v1/auth)', () => {
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
       expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
+    });
+
+    it('should reject login with non-Gmail address', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: 'explorer@yahoo.com',
+          password: 'AnyPassword123!'
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error.code).toBe('INVALID_GMAIL_DOMAIN');
     });
 
     it('should safely reject password login for Google-only accounts', async () => {

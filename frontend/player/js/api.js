@@ -129,6 +129,54 @@ class PlayerApiClient {
     return res.data;
   }
 
+  async requestRegistrationOtp(email, password, name) {
+    const res = await this.request('/auth/register/send-verification', {
+      method: 'POST',
+      body: { email, password, name }
+    });
+    return res.data;
+  }
+
+  async sendEmailVerification(email, password, name, confirmPassword) {
+    const res = await this.request('/auth/register/send-verification', {
+      method: 'POST',
+      body: { email, password, name, confirmPassword }
+    });
+    return res.data;
+  }
+
+  async verifyRegistrationOtp(email, otp) {
+    const res = await this.request('/auth/register/verify-email', {
+      method: 'POST',
+      body: { email, otp }
+    });
+    return res.data;
+  }
+
+  async verifyEmail(email, otp) {
+    const res = await this.request('/auth/register/verify-email', {
+      method: 'POST',
+      body: { email, otp }
+    });
+    return res.data;
+  }
+
+  async resendRegistrationOtp(email) {
+    const res = await this.request('/auth/register/resend-verification', {
+      method: 'POST',
+      body: { email }
+    });
+    return res.data;
+  }
+
+  async resendEmailVerification(email) {
+    const res = await this.request('/auth/register/resend-verification', {
+      method: 'POST',
+      body: { email }
+    });
+    return res.data;
+  }
+
   async loginWithGoogle(idToken) {
     const res = await this.request('/auth/google', {
       method: 'POST',
@@ -163,6 +211,32 @@ class PlayerApiClient {
       this.clearSession();
     }
   }
+
+  // --- Password Reset APIs (Gmail OTP Flow) ---
+  async requestPasswordResetOtp(email) {
+    const res = await this.request('/auth/forgot-password/request-otp', {
+      method: 'POST',
+      body: { email }
+    });
+    return res;
+  }
+
+  async verifyPasswordResetOtp(email, otp) {
+    const res = await this.request('/auth/forgot-password/verify-otp', {
+      method: 'POST',
+      body: { email, otp }
+    });
+    return res;
+  }
+
+  async resetPassword(resetToken, newPassword, confirmPassword) {
+    const res = await this.request('/auth/forgot-password/reset', {
+      method: 'POST',
+      body: { resetToken, newPassword, confirmPassword }
+    });
+    return res;
+  }
+
 
   // --- Profile APIs ---
   async getProfile() {

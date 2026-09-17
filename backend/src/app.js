@@ -48,17 +48,25 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+const playerStaticDir = path.join(__dirname, '..', '..', 'frontend', 'player');
+
 // Mount Versioned API Routes (Top Priority)
 app.use('/api/v1', apiV1Router);
 
 // Serve Static Admin Dashboard (Phase 16 - Isolated)
 app.use('/admin', express.static(path.join(__dirname, '..', '..', 'frontend', 'admin')));
 
-// Serve Static Player Web Client (Phase 17 - Isolated)
-app.use('/play', express.static(path.join(__dirname, '..', '..', 'frontend', 'player')));
+// Serve Static Player Web Client Assets (Both at /play and at root)
+app.use('/play', express.static(playerStaticDir));
+app.use(express.static(playerStaticDir));
 
-// Root Redirect to Player Gaming Client
-app.get('/', (req, res) => res.redirect('/play/'));
+// Explicit SPA Routes for Player Client
+const spaPlayerRoutes = ['/', '/login', '/register', '/forgot-password', '/play', '/play/'];
+spaPlayerRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(playerStaticDir, 'index.html'));
+  });
+});
 
 // 404 Catch-All Middleware
 app.use(notFoundHandler);

@@ -32,8 +32,8 @@ function authenticateJWT(req, res, next) {
   try {
     const payload = verifyAccessToken(token);
 
-    if (!payload || !payload.sub) {
-      return sendError(res, 'Invalid token claims', 'INVALID_TOKEN', 401);
+    if (!payload || !payload.sub || payload.purpose === 'password_reset') {
+      return sendError(res, 'Invalid authentication token', 'INVALID_TOKEN', 401);
     }
 
     // Attach verified user claims strictly from token

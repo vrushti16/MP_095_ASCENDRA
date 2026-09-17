@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const app = require('./app');
 const { connectRedis, disconnectRedis } = require('./config/redis');
+const { checkSmtpConfiguration } = require('./services/emailService');
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -14,6 +15,9 @@ const server = app.listen(PORT, async () => {
   console.log(`🔗 Port:        ${PORT}`);
   console.log(`🩺 Health API:  http://localhost:${PORT}/api/v1/health`);
   console.log(`===============================================`);
+
+  // Safe SMTP configuration diagnostic check (never prints password)
+  await checkSmtpConfiguration();
 
   // Connect Redis cache gracefully (never blocks or crashes server if offline)
   await connectRedis();

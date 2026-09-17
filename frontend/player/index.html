@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ASCENDRA — The Lost Realms</title>
   <meta name="description" content="Embark on an educational fantasy adventure exploring ancient ruins, deciphering runes, and unearthing hidden mechanisms.">
+  <base href="/">
   <link rel="stylesheet" href="css/player.css">
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
@@ -206,7 +207,8 @@
        3. Player Authentication Modal Dialog
        ======================================================================== -->
   <div id="playerAuthModal" class="player-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="player-modal-card">
+    <div class="player-modal-card" style="position: relative;">
+      <button type="button" id="authModalCloseBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
       <div class="modal-header-tabs">
         <button id="tabSigninBtn" class="auth-tab-btn active">Sign In</button>
         <button id="tabRegisterBtn" class="auth-tab-btn">Register</button>
@@ -217,13 +219,17 @@
       <!-- Sign In Form -->
       <form id="signinForm">
         <div class="form-group-game">
-          <label class="form-label-game" for="signinEmail">Email Address</label>
-          <input type="email" id="signinEmail" class="form-input-game" placeholder="explorer@ascendra.edu" required autocomplete="email">
+          <label class="form-label-game" for="signinEmail">Registered Gmail Address</label>
+          <input type="email" id="signinEmail" class="form-input-game" placeholder="yourname@gmail.com" required autocomplete="email">
         </div>
 
         <div class="form-group-game">
           <label class="form-label-game" for="signinPassword">Password</label>
           <input type="password" id="signinPassword" class="form-input-game" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+
+        <div class="auth-aux-row">
+          <button type="button" id="forgotPasswordLink" class="auth-link-btn">Forgot Password?</button>
         </div>
 
         <button type="submit" id="signinSubmitBtn" class="game-btn game-btn-cta" style="width: 100%;">
@@ -239,17 +245,22 @@
         </div>
 
         <div class="form-group-game">
-          <label class="form-label-game" for="registerEmail">Email Address</label>
-          <input type="email" id="registerEmail" class="form-input-game" placeholder="explorer@ascendra.edu" required autocomplete="email">
+          <label class="form-label-game" for="registerEmail">Gmail Address</label>
+          <input type="email" id="registerEmail" class="form-input-game" placeholder="yourname@gmail.com" required autocomplete="email">
         </div>
 
         <div class="form-group-game">
-          <label class="form-label-game" for="registerPassword">Password (6+ chars)</label>
+          <label class="form-label-game" for="registerPassword">Password (8+ chars)</label>
           <input type="password" id="registerPassword" class="form-input-game" placeholder="••••••••••••" required autocomplete="new-password">
         </div>
 
+        <div class="form-group-game">
+          <label class="form-label-game" for="registerConfirmPassword">Confirm Password</label>
+          <input type="password" id="registerConfirmPassword" class="form-input-game" placeholder="••••••••••••" required autocomplete="new-password">
+        </div>
+
         <button type="submit" id="registerSubmitBtn" class="game-btn game-btn-cta" style="width: 100%;">
-          Begin Adventure
+          Create Account
         </button>
       </form>
 
@@ -262,7 +273,168 @@
         <span>G</span> Continue with Google
       </button>
     </div>
+
+    <!-- ========================================================================
+         Embossed / Neumorphic Password Recovery Modal Card (Gmail OTP Flow)
+         ======================================================================== -->
+    <div id="passwordResetFlowContainer" class="embossed-card hidden" role="region" aria-label="Password Reset Flow" style="position: relative;">
+      <button type="button" id="passwordResetCloseBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+      <div id="embossedAlert" class="embossed-alert hidden" role="alert"></div>
+
+      <!-- 1. Step 1: Reset Your Password (Email Input) -->
+      <div id="cardForgotPassword" class="embossed-card-step">
+        <div class="embossed-icon-circle icon-blue">
+          <span class="icon-glyph">✉️</span>
+        </div>
+        <h2 class="embossed-card-title">Reset Your Password</h2>
+        <p class="embossed-card-desc">Enter your registered Gmail address and we'll send you a 6-digit verification code.</p>
+
+        <form id="forgotPasswordForm">
+          <div class="embossed-form-group">
+            <label class="embossed-label" for="fpEmailInput">Registered Gmail Address</label>
+            <div class="embossed-input-wrap">
+              <span class="input-prefix-icon">📧</span>
+              <input type="email" id="fpEmailInput" class="embossed-input" placeholder="explorer@gmail.com" required autocomplete="email">
+            </div>
+          </div>
+
+          <button type="submit" id="fpSendOtpBtn" class="embossed-btn-primary">
+            Send OTP
+          </button>
+        </form>
+
+        <div class="embossed-footer-row">
+          <button type="button" class="embossed-link-btn fpBackToSigninBtn">← Back to Sign In</button>
+        </div>
+      </div>
+
+      <!-- 2. Step 2: Verify Your OTP (6 Boxes + Countdown) -->
+      <div id="cardVerifyOtp" class="embossed-card-step hidden">
+        <div class="embossed-icon-circle icon-amber">
+          <span class="icon-glyph">🔐</span>
+        </div>
+        <h2 class="embossed-card-title">Verify Your OTP</h2>
+        <p class="embossed-card-desc">
+          We've sent a 6-digit verification code to<br>
+          <strong id="otpMaskedEmailDisplay" class="embossed-masked-email">e*****@gmail.com</strong>
+        </p>
+
+        <form id="otpVerifyForm">
+          <div class="embossed-otp-group" role="group" aria-label="6-digit verification code">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox0" class="embossed-otp-box" aria-label="Digit 1 of 6" autocomplete="one-time-code" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox1" class="embossed-otp-box" aria-label="Digit 2 of 6" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox2" class="embossed-otp-box" aria-label="Digit 3 of 6" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox3" class="embossed-otp-box" aria-label="Digit 4 of 6" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox4" class="embossed-otp-box" aria-label="Digit 5 of 6" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox5" class="embossed-otp-box" aria-label="Digit 6 of 6" required>
+          </div>
+
+          <button type="submit" id="otpVerifyBtn" class="embossed-btn-primary">
+            VERIFY OTP
+          </button>
+        </form>
+
+        <div class="otp-timer-row">
+          <span id="otpExpiryCountdown" class="otp-countdown-text">OTP expires in 10:00</span>
+          <button type="button" id="otpResendBtn" class="embossed-resend-btn" disabled>Resend OTP in 60s</button>
+        </div>
+
+        <div class="embossed-footer-row">
+          <button type="button" class="embossed-link-btn fpBackToSigninBtn">← Back to Sign In</button>
+        </div>
+      </div>
+
+      <!-- 3. Step 2-Success: Verification Successful -->
+      <div id="cardOtpVerified" class="embossed-card-step hidden">
+        <div class="embossed-icon-circle icon-green">
+          <span class="icon-glyph">✓</span>
+        </div>
+        <h2 id="otpVerifiedTitle" class="embossed-card-title">Verification Successful</h2>
+        <p id="otpVerifiedDesc" class="embossed-card-desc">Your email has been verified successfully.</p>
+
+        <button type="button" id="otpEnterAscendraBtn" class="embossed-btn-primary hidden">
+          ENTER ASCENDRA
+        </button>
+        <button type="button" id="otpContinueToResetBtn" class="embossed-btn-primary">
+          Continue
+        </button>
+      </div>
+
+      <!-- 4. Step 3: Set New Password -->
+      <div id="cardResetPassword" class="embossed-card-step hidden">
+        <div class="embossed-icon-circle icon-blue">
+          <span class="icon-glyph">🔑</span>
+        </div>
+        <h2 class="embossed-card-title">Set New Password</h2>
+        <p class="embossed-card-desc">Create a new password for your account.</p>
+
+        <form id="resetPasswordForm">
+          <div class="embossed-form-group">
+            <label class="embossed-label" for="newPasswordInput">New Password</label>
+            <div class="embossed-input-wrap">
+              <span class="input-prefix-icon">🔒</span>
+              <input type="password" id="newPasswordInput" class="embossed-input" placeholder="••••••••••••" required autocomplete="new-password">
+              <button type="button" class="pw-toggle-btn" id="toggleNewPasswordBtn" aria-label="Toggle new password visibility">👁️</button>
+            </div>
+          </div>
+
+          <div class="embossed-form-group">
+            <label class="embossed-label" for="confirmPasswordInput">Confirm New Password</label>
+            <div class="embossed-input-wrap">
+              <span class="input-prefix-icon">🔒</span>
+              <input type="password" id="confirmPasswordInput" class="embossed-input" placeholder="••••••••••••" required autocomplete="new-password">
+              <button type="button" class="pw-toggle-btn" id="toggleConfirmPasswordBtn" aria-label="Toggle confirm password visibility">👁️</button>
+            </div>
+          </div>
+
+          <ul class="pw-criteria-list" aria-live="polite">
+            <li id="pwCritLength" class="pw-criteria-item"><span class="criteria-check">○</span> At least 6 characters</li>
+            <li id="pwCritMix" class="pw-criteria-item"><span class="criteria-check">○</span> Use a mix of letters and numbers</li>
+            <li id="pwCritMatch" class="pw-criteria-item"><span class="criteria-check">○</span> Passwords match</li>
+          </ul>
+
+          <button type="submit" id="resetPasswordSubmitBtn" class="embossed-btn-primary">
+            Reset Password
+          </button>
+        </form>
+
+        <div class="embossed-footer-row">
+          <button type="button" class="embossed-link-btn fpBackToSigninBtn">← Back to Sign In</button>
+        </div>
+      </div>
+
+      <!-- 5. Step 4: Password Reset Successful! -->
+      <div id="cardResetSuccess" class="embossed-card-step hidden">
+        <div class="embossed-icon-circle icon-green">
+          <span class="icon-glyph">✓</span>
+        </div>
+        <h2 class="embossed-card-title">Password Reset Successful!</h2>
+        <p class="embossed-card-desc">Your password has been updated successfully. You can now sign in with your new password.</p>
+
+        <button type="button" id="resetSuccessGoToSigninBtn" class="embossed-btn-primary">
+          Go to Sign In
+        </button>
+      </div>
+
+      <!-- 6. Step 2-Error State: Invalid OTP -->
+      <div id="cardInvalidOtp" class="embossed-card-step hidden">
+        <div class="embossed-icon-circle icon-crimson">
+          <span class="icon-glyph">✕</span>
+        </div>
+        <h2 class="embossed-card-title">Invalid OTP</h2>
+        <p id="invalidOtpMessage" class="embossed-card-desc">The verification code you entered is incorrect. Please try again.</p>
+
+        <button type="button" id="invalidOtpTryAgainBtn" class="embossed-btn-primary">
+          Try Again
+        </button>
+
+        <div class="embossed-footer-row">
+          <button type="button" id="invalidOtpResendBtn" class="embossed-link-btn">Resend OTP</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 
   <!-- Firebase Web Authentication SDK (v10 Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>

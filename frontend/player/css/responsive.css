@@ -53,7 +53,7 @@
 
   .player-sidebar.open {
     transform: translateX(0);
-    box-shadow: 0 0 35px rgba(0, 0, 0, 0.9);
+    box-shadow: 4px 0 25px rgba(160, 175, 200, 0.35);
   }
 
   .player-sidebar.open ~ .player-backdrop {
@@ -61,7 +61,7 @@
     position: fixed;
     inset: 0;
     top: var(--p-header-height);
-    background: rgba(5, 9, 18, 0.7);
+    background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(4px);
     z-index: 25;
   }

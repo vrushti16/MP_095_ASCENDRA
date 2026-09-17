@@ -146,8 +146,39 @@ const registerLimiter = createRateLimiter({
   keyPrefix: 'rl:register:'
 });
 
+// Pre-configured rate limiters for password reset flow (Requirement 9 & 15)
+const forgotPasswordRequestLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  keyPrefix: 'rl:fp-req:'
+});
+
+const forgotPasswordVerifyLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
+  keyPrefix: 'rl:fp-verify:'
+});
+
+// Pre-configured rate limiters for registration OTP flow (Section 16)
+const registrationOtpRequestLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  keyPrefix: 'rl:reg-req:'
+});
+
+const registrationOtpVerifyLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
+  keyPrefix: 'rl:reg-verify:'
+});
+
 module.exports = {
   createRateLimiter,
   loginLimiter,
-  registerLimiter
+  registerLimiter,
+  forgotPasswordRequestLimiter,
+  forgotPasswordVerifyLimiter,
+  registrationOtpRequestLimiter,
+  registrationOtpVerifyLimiter
 };
+

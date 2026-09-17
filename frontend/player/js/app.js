@@ -186,4 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.playerSplash) {
     window.playerSplash.init();
   }
+  if (window.playerAuth && typeof window.playerAuth.handleInitialRoute === 'function') {
+    window.playerAuth.handleInitialRoute();
+  }
 });

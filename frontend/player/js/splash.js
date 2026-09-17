@@ -112,15 +112,18 @@ const playerSplash = {
   handleEnterRealm() {
     const token = window.playerApi.getToken();
     if (!token) {
-      // Trigger authentication modal
+      // Trigger authentication modal and update route to /login
       if (window.playerAuth) {
-        window.playerAuth.showModal();
+        window.playerAuth.showModal(null, 'signin', true);
       }
       return;
     }
 
-    // Transition from Splash to Player Hub
+    // Transition from Splash to Player Hub and update route to /play
     this.hideSplash();
+    if (window.playerAuth) {
+      window.playerAuth.updateUrl('/play', true);
+    }
     if (window.playerApp) {
       window.playerApp.loadCurrentSection();
     }

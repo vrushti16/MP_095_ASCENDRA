@@ -4,6 +4,13 @@ require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
+/**
+ * Check if Redis is enabled via environment variable (defaults to true if not explicitly set to 'false')
+ */
+function isRedisConfiguredEnabled() {
+  return process.env.REDIS_ENABLED !== 'false' && process.env.ENABLE_REDIS !== 'false';
+}
+
 let client = null;
 let connectionState = 'disconnected'; // 'disconnected' | 'connecting' | 'connected' | 'unavailable'
 let lastErrorLoggedTime = 0;
@@ -13,8 +20,8 @@ const ERROR_LOG_THROTTLE_MS = 15000; // Prevent log flooding if Redis is offline
  * Configure reconnection strategy with bounded exponential backoff
  */
 function reconnectStrategy(retries) {
-  if (process.env.NODE_ENV === 'test') {
-    // In test environment, don't keep reconnecting indefinitely
+  if (process.env.NODE_ENV === 'test' || retries >= 2 || !isRedisConfiguredEnabled()) {
+    // Do not keep retrying indefinitely when Redis is offline or disabled
     return false;
   }
   // Max retry delay of 3000ms
@@ -35,7 +42,7 @@ function getRedisClient() {
     url: REDIS_URL,
     socket: {
       reconnectStrategy,
-      connectTimeout: 3000
+      connectTimeout: 1000
     }
   });
 
@@ -59,12 +66,13 @@ function getRedisClient() {
   });
 
   client.on('error', (err) => {
+    const wasConnected = connectionState === 'connected';
     connectionState = 'unavailable';
     const now = Date.now();
-    // Throttle error logging to prevent console spam
-    if (now - lastErrorLoggedTime > ERROR_LOG_THROTTLE_MS) {
+    // Only log if connection was active and unexpectedly lost
+    if (wasConnected && now - lastErrorLoggedTime > ERROR_LOG_THROTTLE_MS) {
       if (process.env.NODE_ENV !== 'test') {
-        console.warn(`⚠️ [REDIS WARNING] Redis unavailable at ${REDIS_URL.split('@').pop()}: ${err.message}. Running in cache-bypass mode.`);
+        console.log(`ℹ️ [REDIS] Connection dropped: ${err.message}. Running in cache-bypass mode.`);
       }
       lastErrorLoggedTime = now;
     }
@@ -77,6 +85,14 @@ function getRedisClient() {
  * Connect to Redis gracefully. Never throws or crashes the host process.
  */
 async function connectRedis() {
+  if (!isRedisConfiguredEnabled()) {
+    connectionState = 'unavailable';
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('ℹ️ [REDIS] Cache service disabled via configuration (cache-bypass mode active).');
+    }
+    return false;
+  }
+
   const redisInstance = getRedisClient();
 
   if (redisInstance.isOpen) {
@@ -85,13 +101,16 @@ async function connectRedis() {
 
   try {
     connectionState = 'connecting';
-    await redisInstance.connect();
+    await Promise.race([
+      redisInstance.connect(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timed out')), 1000))
+    ]);
     connectionState = 'connected';
     return true;
   } catch (err) {
     connectionState = 'unavailable';
     if (process.env.NODE_ENV !== 'test') {
-      console.warn(`⚠️ [REDIS] Could not establish connection on startup (${err.message}). Application will operate without cache.`);
+      console.log(`ℹ️ [REDIS] Cache offline at ${REDIS_URL.split('@').pop()} (${err.message}). Running in cache-bypass mode.`);
     }
     return false;
   }

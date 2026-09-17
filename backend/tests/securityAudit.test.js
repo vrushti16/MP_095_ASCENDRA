@@ -789,10 +789,10 @@ describe('Full-Stack Security Audit & Adversarial QA Suite (Phase 18)', () => {
       expect(bodyStr).not.toMatch(/password/i);
     });
 
-    it('Static route isolation: /play/ serves player client, /admin/ serves admin, / redirects to /play/', async () => {
+    it('Static route isolation: / serves player client, /play/ serves player client, /admin/ serves admin', async () => {
       const rootRes = await request(app).get('/');
-      expect(rootRes.status).toBe(302);
-      expect(rootRes.headers.location).toBe('/play/');
+      expect(rootRes.status).toBe(200);
+      expect(rootRes.text).toContain('ASCENDRA');
 
       const playRes = await request(app).get('/play/');
       expect(playRes.status).toBe(200);

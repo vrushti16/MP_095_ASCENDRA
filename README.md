@@ -89,6 +89,11 @@ Unlike conventional educational platforms that rely on repetitive multiple-choic
 ### 1. Authoritative Backend Game Engine (Node.js 22 + Express)
 * **JWT Token Rotation**: 15-minute access tokens paired with 7-day single-use rotating refresh tokens stored securely with revocation tracking.
 * **Dual Google & Firebase Auth**: Server-side Google OAuth2 and Firebase Web Auth token verification against Google Public X509 certificates.
+* **Real Gmail Email Ownership Verification**: Production-ready Double Opt-In registration and login security. Real 6-digit OTP generated via `crypto.randomInt(100000, 1000000)` and delivered via Nodemailer Gmail SMTP.
+* **Cryptographic OTP Security**: All OTPs stored as HMAC-SHA256 digests in PostgreSQL (`email_verification_otps`), verified using constant-time timing-safe comparisons (`crypto.timingSafeEqual`).
+* **Strict Gatekeeping**: Unverified accounts (`email_verified_at IS NULL`) are blocked from login with `403 EMAIL_NOT_VERIFIED` and never issued JWTs until ownership is proven.
+* **Abuse & Attack Mitigation**: 10-minute expiry, 5-attempt lockout, and 60-second database-enforced resend cooldowns with rate limiting.
+* **Domain Isolation**: Physical and cryptographic isolation between registration OTPs and password reset OTPs (`email_verification_otps` vs `password_reset_otps`).
 * **Idempotent Rewards**: Concurrent or duplicate quest completion submissions are deduplicated atomically; rewards are only granted once.
 * **Clue Unlocking Pipeline**: Progressive clues unlock strictly upon passing previous narrative requirements.
 
@@ -98,7 +103,7 @@ Unlike conventional educational platforms that rely on repetitive multiple-choic
 * **Telemetry & Failure Recovery**: Failed validation attempts trigger automatic retries and log structured telemetry events for administrative analysis.
 
 ### 3. Dual Web Frontend Portals
-* **Player Gaming Client (`/play`)**: Built with responsive vanilla JavaScript and CSS, featuring a fantasy-themed UI, real-time inventory relics, quest journal, and WebGL hosting shell.
+* **Player Gaming Client (`/play`)**: Built with responsive vanilla JavaScript and CSS, featuring a fantasy-themed UI, real-time inventory relics, quest journal, embossed 6-box OTP verification card with live countdowns, and WebGL hosting shell.
 * **Admin Operations Dashboard (`/admin`)**: SaaS dashboard for user management, role elevation, quest analytics, real-time telemetry inspection, and service health monitoring.
 
 ---
@@ -121,19 +126,21 @@ MP_095_ASCENDRA/
 ├── backend/                       # Core Game Backend (Node.js 22.x)
 │   ├── src/
 │   │   ├── config/                # Database (pg pool), Redis, and JWT setup
+│   │   ├── controllers/           # Auth, quests, clues, puzzles, admin controllers
 │   │   ├── middleware/            # Auth JWT, Role RBAC, Rate Limiting, Error handling
 │   │   ├── routes/                # Auth, Quests, Clues, Puzzles, Admin, Health
-│   │   ├── services/              # Auth, Cache, AI Gateway, Puzzle Validator
+│   │   ├── services/              # Email, EmailVerification, PasswordReset, Auth, Cache
+│   │   ├── utils/                 # Gmail validator, ApiResponse helpers
 │   │   ├── app.js                 # Express application & static routing
 │   │   └── server.js              # Server entry point
-│   ├── tests/                     # Jest comprehensive test suite (13 suites, 204 tests)
+│   ├── tests/                     # Jest comprehensive test suite (16 suites, 255 tests)
 │   └── package.json               # Backend dependencies & npm scripts
 ├── database/                      # PostgreSQL Schemas, Migrations & Seeds
-│   ├── migrations/                # SQL migration scripts (001_initial, 002_telemetry)
+│   ├── migrations/                # SQL migrations (001_init, 002_telemetry, 003_reset, 004_reg, 005_verify)
 │   ├── seeds/                     # Starter quests, clues, and demo fixtures
 │   └── scripts/                   # Migration & seed runners (migrate.js, seed.js)
 ├── frontend/                      # Web Frontends
-│   ├── player/                    # Player Web Client & WebGL Hosting Shell (/play)
+│   ├── player/                    # Player Web Client & Embossed Auth Shell (/play, /login, /register)
 │   └── admin/                     # Operational Admin Management Console (/admin)
 ├── docs/                          # Comprehensive Architecture & Engineering Documentation
 │   ├── ADMIN_API.md               # Administrative API contracts
@@ -184,7 +191,7 @@ cp .env.example backend/.env
 cp ai-service/.env.example ai-service/.env
 ```
 
-Update `backend/.env` with your PostgreSQL database credentials, Redis URL, and JWT secrets:
+Update `backend/.env` with your PostgreSQL database credentials, Redis URL, JWT secrets, and Gmail SMTP configuration:
 ```env
 PORT=5000
 DATABASE_URL=postgresql://postgres:password@localhost:5432/ascendra_db
@@ -192,6 +199,14 @@ REDIS_URL=redis://localhost:6379
 JWT_SECRET=your_jwt_secret_min_32_characters_long!
 JWT_REFRESH_SECRET=your_refresh_secret_min_32_characters_long!
 AI_SERVICE_URL=http://localhost:8000
+
+# Gmail SMTP Email Delivery
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=ASCENDRA SMTP
+SMTP_PASSWORD=your_16_digit_gmail_app_password
+EMAIL_FROM=your_email@gmail.com
+SMTP_AUTH_USER=your_email@gmail.com
 ```
 
 ### 3. Database Migration & Seeding
@@ -238,9 +253,19 @@ Once the backend is started, all interfaces and APIs are accessible via `http://
 | Endpoint / URL | Service / Feature | Description |
 | :--- | :--- | :--- |
 | `http://localhost:5000/play` | **Player Web Client** | 3D WebGL game hosting shell, hero HUD, relic inventory, and clue journal. |
+| `http://localhost:5000/login` | **Sign In Portal** | Embossed player sign in with unverified account detection & resend action. |
+| `http://localhost:5000/register` | **Register Portal** | Explorer registration with 6-digit real Gmail OTP verification flow. |
+| `http://localhost:5000/forgot-password` | **Password Recovery** | 6-digit Gmail OTP password recovery and scoped token reset flow. |
 | `http://localhost:5000/admin` | **Admin Dashboard** | Operations console, role assignment, telemetry event logs, and service health. |
 | `http://localhost:5000/api/v1/health` | **Health Probes** | Multi-service health monitoring (PostgreSQL, Redis, AI service). |
-| `http://localhost:5000/api/v1/auth/*` | **Authentication API** | Register, login, Google/Firebase OAuth, token refresh, and logout. |
+| `POST /api/v1/auth/register/send-verification` | **Email Verification** | Send 6-digit OTP to user's real Gmail address for account verification. |
+| `POST /api/v1/auth/register/verify-email` | **Verify Email** | Verify 6-digit OTP, mark account verified, and issue authenticated JWTs. |
+| `POST /api/v1/auth/register/resend-verification` | **Resend OTP** | Resend registration OTP (enforces 60-second cooldown). |
+| `POST /api/v1/auth/forgot-password/request-otp` | **Password Reset OTP** | Request 6-digit OTP for password recovery. |
+| `POST /api/v1/auth/forgot-password/verify-otp` | **Verify Reset OTP** | Verify OTP and issue scoped, short-lived reset authorization token. |
+| `POST /api/v1/auth/forgot-password/reset` | **Complete Reset** | Reset password with token, hash with bcrypt, and revoke old sessions. |
+| `POST /api/v1/auth/login` | **Login API** | Authenticate verified players; blocks unverified accounts (`403`). |
+| `POST /api/v1/auth/google` | **Google OAuth API** | Verified Google/Firebase Sign-In (auto-verified, passwordless). |
 | `http://localhost:5000/api/v1/quests/*` | **Quests API** | Fetch active quests, start quests, and claim authoritative completion rewards. |
 | `http://localhost:5000/api/v1/clues/*` | **Clues API** | Progressive archaeological clue discovery. |
 | `http://localhost:5000/api/v1/puzzles/*`| **Puzzles API** | Generate and submit procedural educational puzzles. |
@@ -259,10 +284,22 @@ node scripts/check-secrets.js
 ```
 
 ### 2. Backend Test Suite (Jest)
-Runs 13 test suites covering 204 unit and integration test cases:
+Runs 16 test suites covering 255 unit and integration test cases:
 ```bash
 cd backend
 npm test
+```
+
+#### Dedicated Security & Auth Test Suites:
+```bash
+# Real Gmail email ownership verification suite (22 criteria)
+npx jest tests/emailVerification.test.js --runInBand
+
+# Gmail OTP password reset flow suite (17 criteria)
+npx jest tests/passwordReset.test.js --runInBand
+
+# Core authentication & JWT rotation suite (21 criteria)
+npx jest tests/auth.test.js --runInBand
 ```
 
 ### 3. AI Service Test Suite (Pytest)
