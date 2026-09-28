@@ -60,6 +60,22 @@ app.use('/admin', express.static(path.join(__dirname, '..', '..', 'frontend', 'a
 app.use('/play', express.static(playerStaticDir));
 app.use(express.static(playerStaticDir));
 
+// Serve Unity WebGL Build with proper Gzip header decompression support
+app.use('/webgl', express.static(path.join(__dirname, '..', '..', '..', 'Builds', 'WebGL'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.gz')) {
+      res.setHeader('Content-Encoding', 'gzip');
+      if (filePath.endsWith('.framework.js.gz') || filePath.endsWith('.js.gz')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (filePath.endsWith('.wasm.gz')) {
+        res.setHeader('Content-Type', 'application/wasm');
+      } else if (filePath.endsWith('.data.gz')) {
+        res.setHeader('Content-Type', 'application/octet-stream');
+      }
+    }
+  }
+}));
+
 // Explicit SPA Routes for Player Client
 const spaPlayerRoutes = ['/', '/login', '/register', '/forgot-password', '/play', '/play/'];
 spaPlayerRoutes.forEach(route => {

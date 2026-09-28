@@ -79,22 +79,9 @@ const playerAdventure = {
       </div>
 
       <!-- Unity WebGL Hosting Shell Canvas Frame -->
-      <div id="unityViewportContainer" class="unity-viewport-frame">
-        <div class="unity-shell-canvas-mount">
-          <div class="webgl-pending-banner">
-            <div class="realm-emblem">🛡️</div>
-            <h2>ASCENDRA — ADVENTURE WORLD</h2>
-            <p class="webgl-notice-subtext">
-              Existing Unity WebGL game will load here
-            </p>
-            <div class="build-pending-chip">
-              [ WEBGL BUILD PENDING ]
-            </div>
-            <p class="webgl-info-note">
-              The existing Unity adventure map (Stage_1_1_Village) is preserved and ready for export into this hosting container.
-            </p>
-          </div>
-        </div>
+      <div id="unityViewportContainer" class="unity-viewport-frame" style="position: relative; width: 100%; min-height: 620px; background: #0b0f19; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <iframe src="/webgl/index.html" id="unityGameIframe" style="width: 100%; height: 100%; min-height: 620px; border: none;" allowfullscreen title="ASCENDRA Unity WebGL Game"></iframe>
+      </div>
 
         <!-- Quest Status Strip at Bottom of Adventure Shell -->
         <div class="adventure-quest-strip">
