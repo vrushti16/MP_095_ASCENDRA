@@ -358,6 +358,14 @@ const playerAuth = {
     }
   },
 
+  getActiveOtpBoxes() {
+    if (this.otpMode === 'registration') {
+      return this.otpBoxes;
+    }
+    // Forgot password uses 5 digits
+    return this.otpBoxes.slice(0, 5);
+  },
+
   /**
    * Transition between authentication and password-reset states
    * Explicit States:
@@ -395,6 +403,7 @@ const playerAuth = {
 
     switch (state) {
       case 'forgot-password':
+        this.otpMode = 'forgot-password';
         if (this.cardForgotPassword) this.cardForgotPassword.classList.remove('hidden');
         if (this.fpEmailInput) this.fpEmailInput.focus();
         this.updateUrl('/forgot-password', updateHistory);
@@ -402,7 +411,10 @@ const playerAuth = {
 
       case 'otp-verification':
         if (this.cardVerifyOtp) this.cardVerifyOtp.classList.remove('hidden');
-        const activeEmail = this.otpMode === 'registration' ? this.regEmail : this.resetEmail;
+        const isRegistration = this.otpMode === 'registration';
+        const activeEmail = isRegistration ? this.regEmail : this.resetEmail;
+        const requiredDigits = isRegistration ? 6 : 5;
+
         if (this.otpMaskedEmailDisplay && activeEmail) {
           this.otpMaskedEmailDisplay.textContent = this.maskEmail(activeEmail);
         }
@@ -411,18 +423,25 @@ const playerAuth = {
         const backBtn = this.cardVerifyOtp?.querySelector('.fpBackToSigninBtn');
 
         if (verifyTitle) {
-          verifyTitle.textContent = this.otpMode === 'registration' ? 'Verify Your Email' : 'Verify Your OTP';
+          verifyTitle.textContent = isRegistration ? 'Verify Your Email' : 'Verify Your OTP';
         }
         if (verifyDesc && activeEmail) {
-          verifyDesc.innerHTML = `We've sent a 6-digit verification code to<br><strong class="embossed-masked-email">${this.maskEmail(activeEmail)}</strong>`;
+          verifyDesc.innerHTML = `We've sent a ${requiredDigits}-digit verification code to<br><strong class="embossed-masked-email">${this.maskEmail(activeEmail)}</strong>`;
         }
         if (this.otpVerifyBtn) {
-          this.otpVerifyBtn.textContent = this.otpMode === 'registration' ? 'VERIFY EMAIL' : 'VERIFY OTP';
+          this.otpVerifyBtn.textContent = isRegistration ? 'VERIFY EMAIL' : 'VERIFY OTP';
           this.otpVerifyBtn.disabled = true;
         }
         if (backBtn) {
-          backBtn.textContent = this.otpMode === 'registration' ? '← Back to Register' : '← Back to Sign In';
+          backBtn.textContent = isRegistration ? '← Back to Register' : '← Back to Sign In';
         }
+
+        // Configure 6th box (otpBox5) visibility based on mode
+        if (this.otpBoxes[5]) {
+          this.otpBoxes[5].style.display = isRegistration ? '' : 'none';
+          this.otpBoxes[5].required = isRegistration;
+        }
+
         // Clear OTP boxes
         this.otpBoxes.forEach(box => {
           if (box) {
@@ -433,7 +452,7 @@ const playerAuth = {
         if (this.otpBoxes[0]) this.otpBoxes[0].focus();
         // Start timers
         this.startTimers();
-        if (this.otpMode !== 'registration') {
+        if (!isRegistration) {
           this.updateUrl('/forgot-password', false);
         }
         break;
@@ -499,7 +518,8 @@ const playerAuth = {
    */
   setupOtpInputBehavior() {
     const updateVerifyBtnState = () => {
-      const allFilled = this.otpBoxes.every(b => b && b.value.trim().length === 1);
+      const activeBoxes = this.getActiveOtpBoxes();
+      const allFilled = activeBoxes.every(b => b && b.value.trim().length === 1);
       if (this.otpVerifyBtn) {
         this.otpVerifyBtn.disabled = !allFilled;
       }
@@ -510,34 +530,40 @@ const playerAuth = {
 
       // Keydown handler: Backspace and Arrow keys
       box.addEventListener('keydown', (e) => {
+        const activeBoxes = this.getActiveOtpBoxes();
+        if (idx >= activeBoxes.length) return;
+
         if (e.key === 'Backspace') {
           if (!box.value && idx > 0) {
             e.preventDefault();
-            this.otpBoxes[idx - 1].value = '';
-            this.otpBoxes[idx - 1].classList.remove('filled');
-            this.otpBoxes[idx - 1].focus();
+            activeBoxes[idx - 1].value = '';
+            activeBoxes[idx - 1].classList.remove('filled');
+            activeBoxes[idx - 1].focus();
           } else {
             box.classList.remove('filled');
           }
           setTimeout(updateVerifyBtnState, 10);
         } else if (e.key === 'ArrowLeft' && idx > 0) {
           e.preventDefault();
-          this.otpBoxes[idx - 1].focus();
-        } else if (e.key === 'ArrowRight' && idx < this.otpBoxes.length - 1) {
+          activeBoxes[idx - 1].focus();
+        } else if (e.key === 'ArrowRight' && idx < activeBoxes.length - 1) {
           e.preventDefault();
-          this.otpBoxes[idx + 1].focus();
+          activeBoxes[idx + 1].focus();
         }
       });
 
       // Input handler: single numeric digit entry & auto-advance
       box.addEventListener('input', (e) => {
+        const activeBoxes = this.getActiveOtpBoxes();
+        if (idx >= activeBoxes.length) return;
+
         const val = box.value.replace(/[^0-9]/g, '');
         if (val.length > 0) {
           box.value = val[val.length - 1]; // take the latest digit
           box.classList.add('filled');
           box.classList.remove('error');
-          if (idx < this.otpBoxes.length - 1) {
-            this.otpBoxes[idx + 1].focus();
+          if (idx < activeBoxes.length - 1) {
+            activeBoxes[idx + 1].focus();
           }
         } else {
           box.value = '';
@@ -546,25 +572,26 @@ const playerAuth = {
         updateVerifyBtnState();
       });
 
-      // Paste handler on any of the 6 boxes
+      // Paste handler on any box
       box.addEventListener('paste', (e) => {
         e.preventDefault();
+        const activeBoxes = this.getActiveOtpBoxes();
         const clipboardData = (e.clipboardData || window.clipboardData).getData('text');
-        const digits = clipboardData.replace(/[^0-9]/g, '').slice(0, 6);
+        const digits = clipboardData.replace(/[^0-9]/g, '').slice(0, activeBoxes.length);
 
         if (digits.length > 0) {
           digits.split('').forEach((d, i) => {
-            if (this.otpBoxes[i]) {
-              this.otpBoxes[i].value = d;
-              this.otpBoxes[i].classList.add('filled');
-              this.otpBoxes[i].classList.remove('error');
+            if (activeBoxes[i]) {
+              activeBoxes[i].value = d;
+              activeBoxes[i].classList.add('filled');
+              activeBoxes[i].classList.remove('error');
             }
           });
 
           // Focus the next empty box or the last box
-          const focusIndex = Math.min(digits.length, 5);
-          if (this.otpBoxes[focusIndex]) {
-            this.otpBoxes[focusIndex].focus();
+          const focusIndex = Math.min(digits.length, activeBoxes.length - 1);
+          if (activeBoxes[focusIndex]) {
+            activeBoxes[focusIndex].focus();
           }
         }
         updateVerifyBtnState();
@@ -705,6 +732,88 @@ const playerAuth = {
       clearInterval(this.otpExpiryTimer);
       this.otpExpiryTimer = null;
     }
+    if (this.fpCooldownTimer) {
+      clearInterval(this.fpCooldownTimer);
+      this.fpCooldownTimer = null;
+    }
+    if (this.fpSendOtpBtn) {
+      this.fpSendOtpBtn.disabled = false;
+      this.fpSendOtpBtn.textContent = 'Send OTP';
+    }
+  },
+
+  startForgotPasswordCooldown(initialSeconds = 60) {
+    if (this.fpCooldownTimer) {
+      clearInterval(this.fpCooldownTimer);
+      this.fpCooldownTimer = null;
+    }
+
+    let remaining = Math.max(1, parseInt(initialSeconds, 10) || 60);
+
+    if (this.fpSendOtpBtn) {
+      this.fpSendOtpBtn.disabled = true;
+      this.fpSendOtpBtn.textContent = `Send OTP (${remaining}s)`;
+    }
+
+    this.showEmbossedAlert(
+      `Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before requesting a new verification code.`,
+      'warning'
+    );
+
+    this.fpCooldownTimer = setInterval(() => {
+      remaining--;
+      if (remaining > 0) {
+        if (this.fpSendOtpBtn) {
+          this.fpSendOtpBtn.textContent = `Send OTP (${remaining}s)`;
+        }
+        this.showEmbossedAlert(
+          `Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before requesting a new verification code.`,
+          'warning'
+        );
+      } else {
+        clearInterval(this.fpCooldownTimer);
+        this.fpCooldownTimer = null;
+        if (this.fpSendOtpBtn) {
+          this.fpSendOtpBtn.disabled = false;
+          this.fpSendOtpBtn.textContent = 'Send OTP';
+        }
+        this.showEmbossedAlert('You can now request a new verification code.', 'success');
+        setTimeout(() => {
+          if (!this.fpCooldownTimer) {
+            this.hideEmbossedAlert();
+          }
+        }, 3500);
+      }
+    }, 1000);
+  },
+
+  startResendCooldown(initialSeconds = 60) {
+    if (this.resendCooldownTimer) {
+      clearInterval(this.resendCooldownTimer);
+      this.resendCooldownTimer = null;
+    }
+
+    let resendSeconds = Math.max(1, parseInt(initialSeconds, 10) || 60);
+    if (this.otpResendBtn) {
+      this.otpResendBtn.disabled = true;
+      this.otpResendBtn.textContent = `Resend OTP in ${resendSeconds}s`;
+    }
+
+    this.resendCooldownTimer = setInterval(() => {
+      resendSeconds--;
+      if (resendSeconds > 0) {
+        if (this.otpResendBtn) {
+          this.otpResendBtn.textContent = `Resend OTP in ${resendSeconds}s`;
+        }
+      } else {
+        clearInterval(this.resendCooldownTimer);
+        this.resendCooldownTimer = null;
+        if (this.otpResendBtn) {
+          this.otpResendBtn.disabled = false;
+          this.otpResendBtn.textContent = 'Resend OTP';
+        }
+      }
+    }, 1000);
   },
 
   maskEmail(email) {
@@ -723,6 +832,9 @@ const playerAuth = {
   // 1. Request OTP
   async handleRequestOtp(e) {
     e.preventDefault();
+    if (this.fpCooldownTimer) {
+      return; // Countdown is running
+    }
     const email = this.fpEmailInput?.value.trim();
     if (!email) {
       this.showEmbossedAlert('Please enter your registered Gmail address.');
@@ -742,21 +854,32 @@ const playerAuth = {
     try {
       await window.playerApi.requestPasswordResetOtp(email);
       this.resetEmail = email;
+      this.otpMode = 'forgot-password';
       this.setAuthState('otp-verification');
     } catch (err) {
-      this.showEmbossedAlert(err.message || 'Unable to send verification code. Please try again.');
-    } finally {
       this.setButtonLoading(this.fpSendOtpBtn, false, 'Send OTP');
+      const waitMatch = (err.message || '').match(/(\d+)\s+seconds/i);
+      const waitSeconds = err.waitSeconds || (waitMatch ? parseInt(waitMatch[1], 10) : 0);
+
+      if (err.code === 'COOLDOWN_ACTIVE' || waitSeconds > 0) {
+        this.startForgotPasswordCooldown(waitSeconds || 60);
+      } else {
+        this.showEmbossedAlert(err.message || 'Unable to send verification code. Please try again.');
+      }
     }
   },
 
   // 2. Verify OTP
   async handleVerifyOtp(e) {
     e.preventDefault();
-    const otp = this.otpBoxes.map(b => b.value.trim()).join('');
+    const isRegistration = this.otpMode === 'registration';
+    const activeBoxes = this.getActiveOtpBoxes();
+    const requiredLength = isRegistration ? 6 : 5;
+    const otp = activeBoxes.map(b => b.value.trim()).join('');
 
-    if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-      this.showEmbossedAlert('Please enter all 6 digits of your verification code.');
+    const otpRegex = isRegistration ? /^\d{6}$/ : /^\d{5}$/;
+    if (otp.length !== requiredLength || !otpRegex.test(otp)) {
+      this.showEmbossedAlert(`Please enter all ${requiredLength} digits of your verification code.`);
       return;
     }
 
@@ -878,8 +1001,11 @@ const playerAuth = {
       });
       if (this.otpBoxes[0]) this.otpBoxes[0].focus();
     } catch (err) {
-      if (err.code === 'COOLDOWN_ACTIVE') {
-        this.showEmbossedAlert('Please wait before requesting another code.');
+      const waitMatch = (err.message || '').match(/(\d+)\s+seconds/i);
+      const waitSeconds = err.waitSeconds || (waitMatch ? parseInt(waitMatch[1], 10) : 0);
+      if (err.code === 'COOLDOWN_ACTIVE' || waitSeconds > 0) {
+        this.startResendCooldown(waitSeconds || 60);
+        this.showEmbossedAlert(`Please wait ${waitSeconds || 60} seconds before requesting another code.`, 'warning');
       } else {
         this.showEmbossedAlert(err.message || 'Could not resend code. Please try again.');
       }

@@ -1,4 +1,5 @@
 const clueService = require('../services/clueService');
+const { query } = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 /**
@@ -44,3 +45,4 @@ module.exports = {
   getClues,
   getClue
 };
+

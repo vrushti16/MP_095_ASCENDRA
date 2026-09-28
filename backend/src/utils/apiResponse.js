@@ -32,7 +32,9 @@ function sendError(res, message = 'An error occurred', code = 'INTERNAL_SERVER_E
     message
   };
 
-  if (details && process.env.NODE_ENV !== 'production') {
+  if (details && typeof details === 'object') {
+    Object.assign(errorPayload, details);
+  } else if (details && process.env.NODE_ENV !== 'production') {
     errorPayload.details = details;
   }
 

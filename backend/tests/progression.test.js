@@ -160,4 +160,111 @@ describe('Server-Authoritative Progression Engine', () => {
       expect(finalDb.rows[0].score).toBe(115);
     });
   });
+
+  describe('5. Real Server-Authoritative Progression & Achievement APIs', () => {
+    const request = require('supertest');
+    const app = require('../src/app');
+    let testPlayerToken = null;
+    let testPlayerId = null;
+
+    beforeAll(async () => {
+      const reg = await request(app)
+        .post('/api/v1/auth/register')
+        .send({
+          email: `ach_player_${timestamp}@ascendra.test`,
+          password: 'Password123!',
+          name: 'Achievement Hero'
+        });
+      testPlayerId = reg.body.data.user.id;
+      testPlayerToken = reg.body.data.accessToken;
+    });
+
+    it('should return authoritative player progression summary via GET /api/v1/progression', async () => {
+      const res = await request(app)
+        .get('/api/v1/progression')
+        .set('Authorization', `Bearer ${testPlayerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.player).toBeDefined();
+      expect(res.body.data.player.level).toBe(1);
+      expect(res.body.data.player.xp).toBe(0);
+      expect(res.body.data.player.progressPercentage).toBe(0);
+      expect(res.body.data.gameProgress).toBeDefined();
+      expect(res.body.data.gameProgress.overallPercentage).toBeDefined();
+      expect(res.body.data.achievements).toBeDefined();
+      expect(res.body.data.achievements.items.length).toBeGreaterThan(0);
+    });
+
+    it('should return list of achievements and player progress via GET /api/v1/achievements', async () => {
+      const res = await request(app)
+        .get('/api/v1/achievements')
+        .set('Authorization', `Bearer ${testPlayerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.unlocked).toBe(0);
+      expect(res.body.data.total).toBeGreaterThanOrEqual(8);
+      expect(Array.isArray(res.body.data.items)).toBe(true);
+
+      const firstDiscovery = res.body.data.items.find(i => i.id === 'first_discovery');
+      expect(firstDiscovery).toBeDefined();
+      expect(firstDiscovery.unlocked).toBe(false);
+      expect(firstDiscovery.targetProgress).toBe(1);
+    });
+
+    it('should process verified gameplay event and update progress via POST /api/v1/game-events', async () => {
+      const eventId = `evt_${Date.now()}_test`;
+      const res = await request(app)
+        .post('/api/v1/game-events')
+        .set('Authorization', `Bearer ${testPlayerToken}`)
+        .send({
+          eventId,
+          eventType: 'UNITY_INSCRIPTION_DISCOVERED',
+          payload: { clueId: 'clue_village_inscription_1' }
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('success');
+
+      // Check that achievement unlocked
+      const achCheck = await request(app)
+        .get('/api/v1/achievements')
+        .set('Authorization', `Bearer ${testPlayerToken}`);
+
+      const firstDiscovery = achCheck.body.data.items.find(i => i.id === 'first_discovery');
+      expect(firstDiscovery.unlocked).toBe(true);
+      expect(firstDiscovery.currentProgress).toBe(1);
+    });
+
+    it('should reject duplicate gameplay events idempotently without granting extra rewards', async () => {
+      const duplicateEventId = `evt_dup_${Date.now()}`;
+      
+      // First attempt
+      const res1 = await request(app)
+        .post('/api/v1/game-events')
+        .set('Authorization', `Bearer ${testPlayerToken}`)
+        .send({
+          eventId: duplicateEventId,
+          eventType: 'UNITY_QUEST_STARTED',
+          payload: { questId: 'quest_village_basics' }
+        });
+      expect(res1.status).toBe(200);
+      expect(res1.body.data.status).toBe('success');
+
+      // Duplicate attempt
+      const res2 = await request(app)
+        .post('/api/v1/game-events')
+        .set('Authorization', `Bearer ${testPlayerToken}`)
+        .send({
+          eventId: duplicateEventId,
+          eventType: 'UNITY_QUEST_STARTED',
+          payload: { questId: 'quest_village_basics' }
+        });
+      expect(res2.status).toBe(200);
+      expect(res2.body.data.status).toBe('duplicate');
+    });
+  });
 });
+

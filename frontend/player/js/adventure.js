@@ -43,16 +43,16 @@ const playerAdventure = {
 
   renderAdventureView(container, quests, targetQuestId) {
     // Select the requested quest or default to active/first
-    const activeQuests = quests.filter(q => q.playerProgress?.status === 'in_progress');
-    const defaultQuest = activeQuests[0] || quests[0] || {
-      id: 'quest-crypt-001',
-      title: 'Secrets of the Cipher Crypt',
-      description: 'Explore the ancient ruins and decipher the mechanism to unlock the gate.',
-      difficulty: 'medium',
-      category: 'cryptography',
-      xpReward: 250,
-      scoreReward: 500,
-      playerProgress: { status: 'in_progress', progress: 65 }
+    const starterQuest = quests.find(q => q.id === 'quest_village_basics');
+    const defaultQuest = activeQuests[0] || starterQuest || quests[0] || {
+      id: 'quest_village_basics',
+      title: 'Welcome to Ascendra: Village Awakening',
+      description: 'Explore the starter village, inspect the surroundings, and discover your first set of ancient markings.',
+      difficulty: 'easy',
+      category: 'tutorial',
+      xpReward: 50,
+      scoreReward: 100,
+      playerProgress: { status: 'not_started', progress: 0 }
     };
 
     const currentQuest = (targetQuestId ? quests.find(q => q.id === targetQuestId) : null) || defaultQuest;
@@ -146,6 +146,16 @@ const playerAdventure = {
         </div>
       </div>
     `;
+
+    // Dispatch active session token to Unity WebGL game
+    const iframe = document.getElementById('unityGameIframe');
+    if (iframe) {
+      iframe.onload = () => {
+        if (window.AscendraUnityBridge) {
+          window.AscendraUnityBridge.sendTokenToUnity();
+        }
+      };
+    }
   },
 
   async startCurrentQuest(questId) {

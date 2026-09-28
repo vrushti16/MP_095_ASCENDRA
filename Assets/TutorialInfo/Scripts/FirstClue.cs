@@ -65,6 +65,7 @@ public class FirstClue : MonoBehaviour
         puzzleOpened = true;
 
         Debug.Log("[ASCENDRA EXPLORATION] Player reached clue trigger point!");
+        AscendraUnityBridge.Instance?.NotifyClueDiscovered("clue_village_inscription_1");
         OpenPuzzle();
     }
 
@@ -109,5 +110,7 @@ public class FirstClue : MonoBehaviour
         {
             QuestManager.Instance.UpdateObjective("Follow the clue to the next location");
         }
+
+        AscendraUnityBridge.Instance?.NotifyPuzzleSolved("PZ-001");
     }
 }

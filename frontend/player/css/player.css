@@ -376,7 +376,46 @@ body.player-body {
   border: 1.5px solid var(--p-border);
   border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.hud-player-chip:hover {
+  background: #f0f9ff;
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.16);
+  transform: translateY(-1px);
+}
+
+.hud-player-chip:active {
+  transform: translateY(0);
+  background: #e0f2fe;
+}
+
+.character-unity-card {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.04), rgba(99, 102, 241, 0.06));
+  border: 1.5px solid rgba(2, 132, 199, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.unity-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.unity-badge {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 
 .hud-avatar {
   width: 28px;
@@ -1270,17 +1309,141 @@ body.player-body {
   color: var(--p-cyan);
 }
 
-.milestone-notice-card {
+.unity-sync-live-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: var(--p-radius-lg);
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+}
+
+.sync-status-indicator {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: var(--p-radius);
-  padding: 0.85rem 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.65rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.sync-pulse-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseLiveSync 2s infinite ease-in-out;
+}
+
+@keyframes pulseLiveSync {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+  }
+  50% {
+    transform: scale(1.35);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 1);
+  }
+}
+
+.sync-title {
   font-size: 0.8125rem;
-  color: #cbd5e1;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #10b981;
+  text-transform: uppercase;
+}
+
+.sync-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  margin-left: auto;
+}
+
+.sync-desc {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Floating In-Game Toast Notifications */
+.ascendra-toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.ascendra-achievement-toast {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 420px;
+  background: #0f172a;
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  border-radius: var(--p-radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 24px rgba(245, 158, 11, 0.25);
+  animation: slideInToast 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.ascendra-achievement-toast.fade-out {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+@keyframes slideInToast {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-rune {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+  flex-shrink: 0;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toast-tag {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.08em;
+}
+
+.toast-title {
+  font-size: 0.9375rem;
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.toast-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
 .achievements-grid {
@@ -1359,6 +1522,126 @@ body.player-body {
   font-size: 0.6875rem;
   color: var(--p-cyan);
   font-weight: 600;
+}
+
+.achievement-card-progress-wrap {
+  margin: 0.6rem 0;
+}
+
+.achievement-card-progress-bar {
+  height: 6px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.35rem;
+}
+
+.achievement-card-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #10b981);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.achievement-card.unlocked .achievement-card-progress-fill {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.achievement-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.achievement-reward-tag {
+  color: #fbbf24;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 0.7rem;
+}
+
+.achievement-unlock-date {
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+/* ==========================================================================
+   Game Completion Progress Section
+   ========================================================================== */
+.game-progress-panel {
+  background: var(--p-card);
+  border: 1px solid var(--p-border);
+  border-radius: var(--p-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--p-shadow-card);
+}
+
+.game-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.game-progress-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--p-gold);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.game-progress-big-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--p-cyan);
+}
+
+.game-progress-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.game-progress-metric-item {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--p-radius-md);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.6875rem;
+  color: var(--p-text-dim);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.metric-sub {
+  font-size: 0.65rem;
+  color: var(--p-cyan);
 }
 
 /* ==========================================================================

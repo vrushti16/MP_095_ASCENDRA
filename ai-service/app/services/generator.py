@@ -44,18 +44,31 @@ CRITICAL ARCHITECTURAL CONSTRAINTS:
 """
 
 async def generate_with_gemini(request: PuzzleGenerateRequest) -> Dict[str, Any]:
-    """Generate puzzle using Google Gemini API."""
+    """Generate puzzle using Google Gemini API with multi-key failover."""
     import google.generativeai as genai
 
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    keys = settings.get_gemini_keys()
+    if not keys:
+        raise ValueError("No Gemini API keys configured.")
 
     prompt = build_system_prompt(request)
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    return json.loads(response.text)
+    last_err = None
+
+    for idx, key in enumerate(keys, 1):
+        try:
+            genai.configure(api_key=key)
+            model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            logger.warning(f"Gemini API key #{idx} failed: {e}. Trying next key...")
+            last_err = e
+            continue
+
+    raise last_err or Exception("All configured Gemini API keys failed.")
 
 async def generate_with_openai(request: PuzzleGenerateRequest) -> Dict[str, Any]:
     """Generate puzzle using OpenAI API."""
@@ -89,7 +102,7 @@ async def generate_puzzle_service(request: PuzzleGenerateRequest) -> PuzzleGener
             raw_puzzle: Dict[str, Any] = {}
 
             # Check if active LLM provider is configured
-            if settings.LLM_PROVIDER == "gemini" and settings.GEMINI_API_KEY:
+            if settings.LLM_PROVIDER == "gemini" and settings.get_gemini_keys():
                 try:
                     raw_puzzle = await generate_with_gemini(request)
                 except Exception as e:

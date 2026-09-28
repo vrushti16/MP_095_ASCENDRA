@@ -377,6 +377,19 @@ async function completeQuest(questId, userId) {
       client
     });
 
+    // 6. Authoritatively evaluate & unlock achievements reached by this quest completion
+    let newlyUnlockedAchievements = [];
+    try {
+      const achievementService = require('./achievementService');
+      const achResult = await achievementService.evaluateAndSyncPlayerAchievements({
+        userId,
+        client
+      });
+      newlyUnlockedAchievements = achResult.newlyUnlocked || [];
+    } catch (e) {
+      console.warn('[questService] Achievement sync note:', e.message);
+    }
+
     await client.query('COMMIT');
 
     return {
@@ -394,7 +407,8 @@ async function completeQuest(questId, userId) {
       },
       reward: progressionResult.reward,
       profile: progressionResult.profile,
-      levelUp: progressionResult.levelUp
+      levelUp: progressionResult.levelUp,
+      newlyUnlockedAchievements
     };
   } catch (err) {
     await client.query('ROLLBACK');

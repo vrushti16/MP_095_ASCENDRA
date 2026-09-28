@@ -70,7 +70,8 @@ public class NPCInteraction : MonoBehaviour
       {
         QuestManager.Instance.StartQuest(
             "The Lost Knowledge Crystal",
-            "Find the first clue near the village."
+            "Find the first clue near the village.",
+            "quest_village_basics"
         );
 
         questGiven = true;
