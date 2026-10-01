@@ -62,8 +62,8 @@
           </div>
         </div>
 
-        <div class="hud-player-chip" onclick="playerApp.navigateTo('profile')">
-          <div class="hud-avatar">E</div>
+        <div id="headerProfileChip" class="hud-player-chip" role="button" tabindex="0" title="Open Character Profile" aria-label="Open Character Profile">
+          <div id="headerPlayerAvatar" class="hud-avatar">E</div>
           <div class="hud-player-info">
             <span id="headerPlayerName" class="hud-player-name">Explorer</span>
             <span id="headerPlayerLevel" class="hud-player-lvl">LVL 1</span>
@@ -193,6 +193,27 @@
               </div>
             </div>
 
+            <div class="form-group-game">
+              <label class="form-label-game">Unity Game Progression</label>
+              <div class="character-unity-card">
+                <div class="unity-progress-header">
+                  <span class="unity-badge">🎮 Unity Game Campaign</span>
+                  <span id="profileCompletedGamesBadge" class="level-chip">1 Completed</span>
+                </div>
+                <div class="card-footer-meta" style="margin-top: 0.6rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                  <span>Gamer Level: <strong id="profileGamerLevelText" class="text-cyan">Level 1</strong></span>
+                  <span>Games Completed: <strong id="profileCompletedGamesText" class="text-gold">0 / 3 Quests</strong></span>
+                  <span>Completion Rate: <strong id="profileCompletionRateText" class="text-green">0%</strong></span>
+                </div>
+                <div class="game-progress-bar" style="margin-top: 0.6rem; height: 10px; border-radius: 999px;">
+                  <div id="profileCompletionBar" class="game-progress-fill glow-cyan" style="width: 0%;"></div>
+                </div>
+                <div class="text-muted small" style="margin-top: 0.4rem; font-size: 0.75rem;">
+                  ✨ Level progress is earned specifically through completed Unity game quests and challenges.
+                </div>
+              </div>
+            </div>
+
             <button type="submit" class="game-btn game-btn-primary" style="margin-top: 1rem;">
               Update Identity
             </button>
@@ -287,7 +308,7 @@
           <span class="icon-glyph">✉️</span>
         </div>
         <h2 class="embossed-card-title">Reset Your Password</h2>
-        <p class="embossed-card-desc">Enter your registered Gmail address and we'll send you a 6-digit verification code.</p>
+        <p class="embossed-card-desc">Enter your registered Gmail address and we'll send you a 5-digit verification code.</p>
 
         <form id="forgotPasswordForm">
           <div class="embossed-form-group">
@@ -308,25 +329,25 @@
         </div>
       </div>
 
-      <!-- 2. Step 2: Verify Your OTP (6 Boxes + Countdown) -->
+      <!-- 2. Step 2: Verify Your OTP (5 Boxes for Reset, 6 Boxes for Registration) -->
       <div id="cardVerifyOtp" class="embossed-card-step hidden">
         <div class="embossed-icon-circle icon-amber">
           <span class="icon-glyph">🔐</span>
         </div>
         <h2 class="embossed-card-title">Verify Your OTP</h2>
         <p class="embossed-card-desc">
-          We've sent a 6-digit verification code to<br>
+          We've sent a 5-digit verification code to<br>
           <strong id="otpMaskedEmailDisplay" class="embossed-masked-email">e*****@gmail.com</strong>
         </p>
 
         <form id="otpVerifyForm">
-          <div class="embossed-otp-group" role="group" aria-label="6-digit verification code">
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox0" class="embossed-otp-box" aria-label="Digit 1 of 6" autocomplete="one-time-code" required>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox1" class="embossed-otp-box" aria-label="Digit 2 of 6" required>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox2" class="embossed-otp-box" aria-label="Digit 3 of 6" required>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox3" class="embossed-otp-box" aria-label="Digit 4 of 6" required>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox4" class="embossed-otp-box" aria-label="Digit 5 of 6" required>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox5" class="embossed-otp-box" aria-label="Digit 6 of 6" required>
+          <div class="embossed-otp-group" role="group" aria-label="Verification code">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox0" class="embossed-otp-box" aria-label="Digit 1" autocomplete="one-time-code" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox1" class="embossed-otp-box" aria-label="Digit 2" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox2" class="embossed-otp-box" aria-label="Digit 3" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox3" class="embossed-otp-box" aria-label="Digit 4" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox4" class="embossed-otp-box" aria-label="Digit 5" required>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="otpBox5" class="embossed-otp-box" aria-label="Digit 6" style="display: none;">
           </div>
 
           <button type="submit" id="otpVerifyBtn" class="embossed-btn-primary">
@@ -449,6 +470,7 @@
   <script src="js/adventure.js"></script>
   <script src="js/inventory.js"></script>
   <script src="js/clues.js"></script>
+  <script src="js/unityBridge.js"></script>
   <script src="js/achievements.js"></script>
   <script src="js/app.js"></script>
 </body>

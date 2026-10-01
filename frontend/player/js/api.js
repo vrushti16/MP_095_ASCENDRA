@@ -19,6 +19,10 @@ class PlayerApiClient {
     return sessionStorage.getItem(this.tokenKey);
   }
 
+  isAuthenticated() {
+    return !!this.getToken();
+  }
+
   getRefreshToken() {
     return sessionStorage.getItem(this.refreshTokenKey);
   }
@@ -100,6 +104,7 @@ class PlayerApiClient {
         const error = new Error(errorMsg);
         error.status = response.status;
         error.code = data.error?.code || 'API_ERROR';
+        error.waitSeconds = data.error?.waitSeconds;
         throw error;
       }
 
@@ -296,11 +301,37 @@ class PlayerApiClient {
     return res.data;
   }
 
+  async unlockClue(clueId) {
+    const res = await this.request(`/clues/${encodeURIComponent(clueId)}/unlock`, {
+      method: 'POST'
+    });
+    return res.data;
+  }
+
   // --- Puzzle & Mechanism APIs ---
   async attemptPuzzle(puzzleId, answer, timeTakenSeconds = 0) {
     const res = await this.request(`/puzzles/${encodeURIComponent(puzzleId)}/attempt`, {
       method: 'POST',
       body: { answer, timeTakenSeconds }
+    });
+    return res.data;
+  }
+
+  // --- Authoritative Progression & Achievement APIs ---
+  async getProgression() {
+    const res = await this.request('/progression');
+    return res.data;
+  }
+
+  async getAchievements() {
+    const res = await this.request('/achievements');
+    return res.data;
+  }
+
+  async postGameplayEvent(payload) {
+    const res = await this.request('/progression/events', {
+      method: 'POST',
+      body: payload
     });
     return res.data;
   }

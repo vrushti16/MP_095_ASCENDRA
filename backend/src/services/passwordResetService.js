@@ -24,7 +24,7 @@ function hashOtp(email, otp) {
 }
 
 /**
- * Request a 6-digit password reset OTP sent to registered email
+ * Request a 5-digit password reset OTP sent to registered email
  * Enforces:
  * - Constant generic response (no account enumeration)
  * - 60-second resend cooldown per email
@@ -81,16 +81,18 @@ async function requestOtp(rawEmail) {
     const now = Date.now();
     if (resendAvailableAt > now) {
       const waitSeconds = Math.max(1, Math.ceil((resendAvailableAt - now) / 1000));
-      throw new AuthError(
+      const err = new AuthError(
         `Please wait ${waitSeconds} seconds before requesting a new verification code.`,
         'COOLDOWN_ACTIVE',
         429
       );
+      err.waitSeconds = waitSeconds;
+      throw err;
     }
   }
 
-  // 4. Generate cryptographically secure 6-digit decimal code (100000 - 999999)
-  const otpCode = crypto.randomInt(100000, 1000000).toString();
+  // 4. Generate cryptographically secure 5-digit decimal code (10000 - 99999)
+  const otpCode = crypto.randomInt(10000, 100000).toString();
   const otpDigest = hashOtp(email, otpCode);
 
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -133,13 +135,13 @@ async function requestOtp(rawEmail) {
 
   return {
     success: true,
-    message: 'A 6-digit verification code has been sent to your Gmail address.',
-    genericMessage: 'A 6-digit verification code has been sent to your Gmail address.'
+    message: 'A 5-digit verification code has been sent to your Gmail address.',
+    genericMessage: 'A 5-digit verification code has been sent to your Gmail address.'
   };
 }
 
 /**
- * Verify 6-digit OTP code and issue a short-lived, scoped reset authorization token
+ * Verify 5-digit OTP code and issue a short-lived, scoped reset authorization token
  * @param {string} rawEmail
  * @param {string} rawOtp
  * @returns {Promise<{ resetToken: string, message: string }>}
@@ -152,8 +154,8 @@ async function verifyOtp(rawEmail, rawOtp) {
   const email = rawEmail.trim().toLowerCase();
   const otp = (rawOtp || '').toString().trim();
 
-  if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-    throw new AuthError('Please enter a valid 6-digit numeric verification code', 'VALIDATION_ERROR', 400);
+  if (!otp || otp.length !== 5 || !/^\d{5}$/.test(otp)) {
+    throw new AuthError('Please enter a valid 5-digit numeric verification code', 'VALIDATION_ERROR', 400);
   }
 
   const client = await getClient();

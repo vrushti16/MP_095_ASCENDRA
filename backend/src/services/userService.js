@@ -82,6 +82,31 @@ async function getPlayerProfile(userId) {
       p = profileRes.rows[0];
     }
 
+    // 3. Query gamer's quest progress as completed in Unity
+    const questStatsRes = await client.query(
+      `SELECT 
+         COUNT(*) FILTER (WHERE status = 'completed')::int AS completed_quests,
+         COUNT(*) FILTER (WHERE status = 'in_progress')::int AS in_progress_quests,
+         COUNT(*)::int AS total_started_quests
+       FROM player_quests
+       WHERE player_id = $1;`,
+      [userId]
+    );
+
+    const totalQuestsRes = await client.query(
+      `SELECT COUNT(*)::int AS total_active_quests FROM quests WHERE status = 'active';`
+    );
+
+    const qStats = questStatsRes.rows[0] || { completed_quests: 0, in_progress_quests: 0, total_started_quests: 0 };
+    const totalActiveQuests = totalQuestsRes.rows[0]?.total_active_quests || 0;
+
+    // 4. Query gamer's unlocked clues count from Unity exploration
+    const clueStatsRes = await client.query(
+      `SELECT COUNT(*)::int AS unlocked_clues FROM player_clues WHERE player_id = $1;`,
+      [userId]
+    );
+    const unlockedClues = clueStatsRes.rows[0]?.unlocked_clues || 0;
+
     return {
       user: {
         id: u.id,
@@ -96,6 +121,11 @@ async function getPlayerProfile(userId) {
         score: p.score,
         health: p.health,
         maxHealth: p.max_health,
+        completedQuests: qStats.completed_quests,
+        inProgressQuests: qStats.in_progress_quests,
+        totalQuests: totalActiveQuests,
+        completionRate: totalActiveQuests > 0 ? Math.round((qStats.completed_quests / totalActiveQuests) * 100) : 0,
+        unlockedClues,
         createdAt: p.created_at,
         updatedAt: p.updated_at
       }

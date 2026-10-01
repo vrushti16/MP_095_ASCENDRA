@@ -226,22 +226,31 @@ AI RESPONSIBILITY:
 - Design the puzzle concept, story context, and narrative discovery
 - Define the semantic asset requirements and object roles
 - Specify the layout dimensions, entrance, focal point, and clue locations
-- Define interactive objects, allowed physical actions, and initial states
+- Define interactive objects, allowed physical actions, initial_state, and target_state
 - Formulate environmental clues and discovery conditions
 - Formulate the learning integration mapping
 - Define the authoritative solution state and machine-readable validation rules
 - Define success/failure environmental responses, animations, audio triggers, and rewards
 - Specify player return state configuration
 
-UNITY RESPONSIBILITY:
+UNITY RESPONSIBILITY (CLIENT):
 - Map semantic asset types to project prefabs using the PuzzleAssetLibrary
 - Dynamically instantiate 3D objects, colliders, and materials in the scene
 - Position and rotate objects based on layout directives
 - Attach runtime interaction components (rotators, levers, pressure plates)
 - Manage player movement, proximity triggers, camera framing, and lighting
 - Execute audio clip playback for ambient music and sound effects
-- Run real-time state validation against the JSON validation rules
-- Destroy temporary puzzle objects upon completion and restore original map state
+- Track the live physical puzzle state (current_state) as the player interacts
+- Provide immediate local interaction feedback (object rotation, mechanical clicks, visual cues)
+- Send the relevant runtime puzzle state to the authoritative server validator upon verification request
+- Never independently grant authoritative puzzle completion or rewards
+- Destroy temporary puzzle objects upon server-confirmed completion and restore original map state
+
+SERVER VALIDATOR RESPONSIBILITY (AUTHORITATIVE BACKEND):
+- Validate submitted runtime puzzle state against authoritative solution requirements
+- Compare client runtime current_state against validation.required_state
+- Authoritatively determine whether the puzzle is solved and grant progress/rewards
+- Reject invalid, out-of-order, or manipulated completion attempts
 
 ============================================================
 SEMANTIC ASSET SYSTEM & ASSET PACK COMPATIBILITY
@@ -525,17 +534,23 @@ Avoid traditional "Which answer is correct?" prompts.
 UNIQUE PUZZLE GENERATION & PERSONALIZATION
 ============================================================
 
-Every AI generation call MUST produce a newly instantiated puzzle context.
-Never generate identical puzzle instances.
+Puzzle uniqueness is guaranteed through a combination of server-assigned identity and AI dynamic parameterization.
 
-Dynamic Variation Parameters:
-- Title, story narrative, and discovery context
-- Numerical values, sequence rules, and word/symbol targets
-- Environment layout, room size, and clue placement
-- Object initial states, target states, and step sequences
-- Clue text, mural content, and discovery mechanics
+SERVER RESPONSIBILITY:
+- The server assigns a unique, authoritative `puzzle_id` for every generated instance.
+- Puzzle uniqueness must NOT depend solely on AI randomness.
+- The API runtime request payload provides `previous_puzzle_ids` and/or puzzle history metadata.
 
-While underlying Unity mechanism components (e.g., rotating rings, pressure plates) are reusable, the instance parameters, solution states, and environmental context MUST BE FRESHLY GENERATED every time.
+AI GENERATION RESPONSIBILITY:
+- The AI must actively inspect the runtime request to avoid repeating recently used:
+  * mechanism combinations
+  * numerical values and sequences
+  * clue structures and riddle texts
+  * environment layouts and asset pack compositions
+  * solution patterns
+  * titles and story contexts
+- Every AI generation call MUST produce a newly instantiated puzzle context.
+- While underlying Unity mechanism components (e.g., rotating rings, pressure plates) are reusable, the instance parameters, solution states, and environmental context MUST BE FRESHLY GENERATED every time.
 
 ============================================================
 ENVIRONMENT-LEARNING CONNECTION (LEARNING INTEGRATION)
@@ -553,27 +568,47 @@ JSON FIELD SPECIFICATION:
 The educational problem MUST exist INSIDE the physical world interaction, never as a separate text questionnaire.
 
 ============================================================
-PUZZLE STATE MODEL
+PUZZLE STATE MODEL & STATE OWNERSHIP
 ============================================================
 
-To enable Unity to manage real-time state transitions, the JSON MUST define a structured `"puzzle_state"` model.
+To enable Unity to manage real-time state transitions and allow authoritative server validation, the JSON defines a structured "puzzle_state" model.
+
+CRITICAL STATE OWNERSHIP RULES:
+1. The AI MUST generate `initial_state` and `target_state`.
+2. The AI MUST NOT treat `current_state` as authoritative gameplay state:
+   - The API cannot know the player's live physical interaction state during runtime.
+   - In the initial JSON response, `current_state` (if included for schema compatibility) MUST simply be initialized equal to `initial_state`.
+3. Unity OWNS and dynamically updates `current_state` during runtime gameplay:
+   - When the player interacts (e.g. rotates object_01 from 0 -> 1 -> 2 -> 3), Unity updates its local `current_state`.
+4. The server-side validator compares the authoritative runtime `current_state` submitted by Unity against `target_state` / `required_state`.
 
 JSON FIELD SPECIFICATION:
 "puzzle_state": {
-    "initial_state": { ... },
-    "current_state": { ... },
-    "target_state": { ... },
+    "initial_state": {
+        "object_01": 0
+    },
+    "current_state": {
+        "object_01": 0
+    },
+    "target_state": {
+        "object_01": 3
+    },
     "reset_on_failure": true
 }
 
 The state objects map interactable object IDs to their required numerical, rotational, string, or boolean values.
 
 ============================================================
-MACHINE-READABLE VALIDATION & ANTI-CHEAT
+MACHINE-READABLE VALIDATION, SINGLE SOURCE OF TRUTH & ANTI-CHEAT
 ============================================================
 
-Validation MUST be state-based and machine-readable.
+Validation MUST be state-based, machine-readable, and verified authoritatively on the server.
 Do NOT rely on free-form text comparison or client-side trust.
+
+SINGLE SOURCE OF TRUTH RULE:
+- `validation.required_state` is the SINGLE AUTHORITATIVE VALIDATION TARGET.
+- To prevent contradiction, `puzzle_logic.solution_state` and `puzzle_state.target_state` must exactly match `validation.required_state`.
+- The server validator uses `validation.required_state` as the definitive ground truth to compare against the client's submitted runtime mechanism state.
 
 JSON FIELD SPECIFICATION:
 "validation": {
@@ -587,6 +622,7 @@ JSON FIELD SPECIFICATION:
 }
 
 The authoritative server validator compares the physical mechanism state submitted by the client (e.g., ring_01=3, ring_02=7, lever_01=1) against `required_state`.
+If the submitted state matches `required_state`, the server signs the completion token and awards progress.
 
 ============================================================
 PUZZLE LIFECYCLE & PLAYER STATE RESTORATION
@@ -614,11 +650,15 @@ INITIALIZE PUZZLE STATE & POSITION PLAYER AT PUZZLE ENTRANCE
         ↓
 PLAYER EXPLORES ROOM & INTERACTS WITH PHYSICAL MECHANISMS
         ↓
-VALIDATE MECHANISM STATE (State-Based Validator)
+UNITY TRACKS RUNTIME CURRENT_STATE & GIVES IMMEDIATE LOCAL FEEDBACK
+        ↓
+CLIENT SENDS PUZZLE STATE TO SERVER VALIDATOR
+        ↓
+SERVER VALIDATOR EVALUATES RUNTIME STATE AGAINST REQUIRED_STATE
         ↓
 SUCCESS EFFECT / FAILURE FEEDBACK & RETRY
         ↓
-PUZZLE COMPLETE
+SERVER CONFIRMS PUZZLE COMPLETION & AWARDS PROGRESS
         ↓
 TRIGGER SUCCESS ANIMATION & AUDIO
         ↓
@@ -684,7 +724,7 @@ STRICT SYNTAX CONSTRAINTS:
 - Do NOT include Markdown formatting or code fences (` ```json ` or ` ``` `).
 - Do NOT include any leading or trailing text outside `{` and `}`.
 
-ENUM RESTRICTIONS:
+ENUM & TAXONOMY RESTRICTIONS:
 The AI MUST select values strictly from supported enums:
 - category: "aptitude", "english", "mathematics", "logical_reasoning", "interview_preparation"
 - difficulty: "beginner", "novice", "skilled", "expert", "master", "legend"
@@ -692,8 +732,14 @@ The AI MUST select values strictly from supported enums:
 - environment.type: "forest_ruin", "village_mechanism", "ancient_gate", "dungeon_chamber", "underground_room", "stone_temple", "alchemy_room", "medieval_storage", "mysterious_forest", "haunted_chamber", "challenge_room", "hidden_ruins", "bridge_mechanism", "outdoor_puzzle_area", "NPC_scenario_area"
 - environment.primary_asset_pack: "RPG_POLY_PACK_LITE", "DUNGEON_LOWPOLY_PACK", "LOW_POLY_MEDIEVAL_PROPS", "ALCHEMY_LAB_PROPS", "POLY_HALLOWEEN_PACK", "PIXEL_ART_TOP_DOWN"
 - mechanism.type: "rotating_objects", "movable_objects", "object_placement", "sequence_reconstruction", "symbol_matching", "pattern_completion", "path_navigation", "switch_activation", "pressure_plates", "lever_combination", "rotating_rings", "number_wheels", "scale_balancing", "object_sorting", "spatial_arrangement", "clue_discovery", "multi_stage_mechanism", "timed_mechanism", "NPC_dialogue_scenario", "resource_allocation", "route_selection", "lock_mechanism", "environmental_state_change"
+- interactionType: "rotate", "move", "place", "activate", "pull", "push", "arrange", "inspect", "dialogue", "balance", "navigate", "rotate_symbol", "sequence_press", "state_toggle" (must use interaction identifiers supported by the Unity puzzle interaction system)
 
-If an unsupported string is requested at runtime, select the closest valid enum value.
+TAXONOMY & FIELD HARMONIZATION RULES:
+- `category` is the primary domain classifier (e.g. "logical_reasoning", "mathematics").
+- `puzzleType` and `taskType` are legacy/API compatibility fields and MUST align with `category`.
+- `theme` designates environmental aesthetic ("dungeon", "forest", "village", "alchemy_lab", "ruins", "haunted").
+- `mechanism.type` defines the physical 3D mechanism archetype in the world.
+- If an unsupported string is requested at runtime, select the closest valid enum value.
 
 ============================================================
 OUTPUT SANITIZATION CHECKLIST (INTERNAL VERIFICATION)
@@ -849,12 +895,12 @@ The generated JSON response MUST strictly follow this extended schema structure:
     ],
 
     "puzzle_logic": {
-        "rule_type": "rule_name",
+        "rule_type": "sequence_relationship",
         "rule_data": {
-            "key": "value"
+            "step_interval": 3
         },
         "solution_state": {
-            "object_01": "target_state_value"
+            "object_01": 3
         }
     },
 

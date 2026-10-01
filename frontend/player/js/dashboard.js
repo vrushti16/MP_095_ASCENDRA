@@ -2,6 +2,7 @@
  * ASCENDRA Player Dashboard Hub Module
  * Renders the dominant "Continue Adventure" action, hero character card,
  * live progression meters, active quests, and recent discoveries.
+ * 100% Server-Authoritative: Bound to real Unity gameplay progression state.
  */
 
 const playerDashboard = {
@@ -12,13 +13,13 @@ const playerDashboard = {
     this.showLoading(container);
 
     try {
-      const [profileData, questsData, cluesData] = await Promise.all([
-        window.playerApi.getProfile().catch(() => null),
+      const [progressionData, questsData, cluesData] = await Promise.all([
+        window.playerApi.getProgression().catch(() => null),
         window.playerApi.getQuests().catch(() => []),
         window.playerApi.getClues().catch(() => [])
       ]);
 
-      this.renderHub(container, profileData, questsData, cluesData);
+      this.renderHub(container, progressionData, questsData, cluesData);
     } catch (err) {
       this.showError(container, err.message);
     }
@@ -44,34 +45,37 @@ const playerDashboard = {
     `;
   },
 
-  renderHub(container, profilePayload, questsList, cluesList) {
-    const user = profilePayload?.user || window.playerApi.getUser() || {};
-    const profile = profilePayload?.profile || {};
-    const level = profile.level || 1;
-    const experience = profile.experience || 0;
-    const score = profile.score || 0;
-    const health = profile.health || 100;
-    const maxHealth = profile.maxHealth || 100;
+  renderHub(container, progressionPayload, questsList, cluesList) {
+    const player = progressionPayload?.player || {};
+    const gameProgress = progressionPayload?.gameProgress || {};
+    const user = window.playerApi.getUser() || { name: player.name, email: player.email };
+    const level = player.level || 1;
+    const experience = player.xp || 0;
+    const xpForNextLevel = player.xpForNextLevel || 100;
+    const xpRemaining = player.xpRemaining ?? Math.max(0, xpForNextLevel - experience);
+    const xpPercent = player.progressPercentage || 0;
+    const score = player.score || 0;
+    const health = player.health || 100;
+    const maxHealth = player.maxHealth || 100;
 
     // Determine the active quest to highlight
     const activeQuests = (questsList || []).filter(q => q.playerProgress?.status === 'in_progress');
     const availableQuests = (questsList || []).filter(q => q.playerProgress?.status === 'not_started');
     const completedQuests = (questsList || []).filter(q => q.playerProgress?.status === 'completed');
 
-    const primaryQuest = activeQuests[0] || availableQuests[0] || {
-      id: 'quest-crypt-001',
-      title: 'Secrets of the Cipher Crypt',
-      category: 'cryptography',
-      difficulty: 'medium',
-      description: 'Explore the ancient subterranean ruins and decrypt the mechanism.',
-      playerProgress: { progress: 45, status: 'in_progress' }
+    const starterQuest = availableQuests.find(q => q.id === 'quest_village_basics');
+    const primaryQuest = activeQuests[0] || starterQuest || availableQuests[0] || {
+      id: 'quest_village_basics',
+      title: 'Welcome to Ascendra: Village Awakening',
+      category: 'tutorial',
+      difficulty: 'easy',
+      description: 'Explore the starter village, inspect the surroundings, and discover your first set of ancient markings.',
+      playerProgress: { progress: 0, status: 'not_started' }
     };
 
     const currentProgress = primaryQuest.playerProgress?.progress || 0;
-    const xpForNextLevel = level * 1000;
-    const xpPercent = Math.min(100, Math.round((experience % 1000) / 10));
 
-    // Update top header status indicators
+    // Update top header status indicators with authoritative level
     this.updateHeaderStats(user, level, health, maxHealth);
 
     container.innerHTML = `
@@ -95,10 +99,10 @@ const playerDashboard = {
 
           <div class="hero-action-row">
             <button class="game-btn game-btn-cta" onclick="playerApp.navigateTo('adventure', '${this.escapeHtml(primaryQuest.id)}')">
-              ⚔️ CONTINUE ADVENTURE
+              ⚔️ ${primaryQuest.playerProgress?.status === 'in_progress' ? 'CONTINUE ADVENTURE' : 'EMBARK ON ADVENTURE'}
             </button>
-            <span class="difficulty-chip ${this.escapeHtml(primaryQuest.difficulty)}">
-              ${this.escapeHtml(primaryQuest.difficulty.toUpperCase())}
+            <span class="difficulty-chip ${this.escapeHtml(primaryQuest.difficulty || 'easy')}">
+              ${this.escapeHtml((primaryQuest.difficulty || 'EASY').toUpperCase())}
             </span>
           </div>
         </div>
@@ -106,19 +110,19 @@ const playerDashboard = {
 
       <!-- Player Progression & Stats Row -->
       <div class="player-stats-grid">
-        <!-- Level & XP Card -->
+        <!-- Level & XP Card (Authoritatively Driven) -->
         <div class="fantasy-card">
           <div class="card-header-compact">
             <span class="card-label">EXPLORER PROGRESSION</span>
             <span class="level-chip">LEVEL ${level}</span>
           </div>
-          <div class="stat-main-value">${experience.toLocaleString()} <span class="stat-unit">XP</span></div>
+          <div class="stat-main-value">${experience.toLocaleString()} <span class="stat-unit">/ ${xpForNextLevel.toLocaleString()} XP</span></div>
           <div class="game-progress-bar">
             <div class="game-progress-fill glow-violet" style="width: ${xpPercent}%;"></div>
           </div>
           <div class="card-footer-meta">
             <span>Score: <strong>${score.toLocaleString()}</strong> pts</span>
-            <span>Next Level: ${xpForNextLevel} XP</span>
+            <span>${xpPercent}% to Level ${level + 1} (${xpRemaining.toLocaleString()} XP needed)</span>
           </div>
         </div>
 
@@ -164,6 +168,46 @@ const playerDashboard = {
         </div>
       </div>
 
+      <!-- ASCENDRA Game Progress Authoritative Summary -->
+      <div class="game-progress-panel">
+        <div class="game-progress-header">
+          <div class="game-progress-title">
+            <span>⚔️ ASCENDRA GAME PROGRESS</span>
+          </div>
+          <div class="game-progress-big-val">${gameProgress.overallPercentage || 0}%</div>
+        </div>
+        <div class="game-progress-bar">
+          <div class="game-progress-fill glow-cyan" style="width: ${gameProgress.overallPercentage || 0}%;"></div>
+        </div>
+        <div class="game-progress-metric-grid">
+          <div class="game-progress-metric-item">
+            <span class="metric-label">Quests</span>
+            <span class="metric-value">${gameProgress.completedQuests || 0} / ${gameProgress.totalQuests || 3}</span>
+            <span class="metric-sub">${gameProgress.inProgressQuests || 0} in progress</span>
+          </div>
+          <div class="game-progress-metric-item">
+            <span class="metric-label">Dynamic Puzzles</span>
+            <span class="metric-value">${gameProgress.completedPuzzles || 0} / ${gameProgress.totalRequiredPuzzles || 10}</span>
+            <span class="metric-sub">Authoritative Solves</span>
+          </div>
+          <div class="game-progress-metric-item">
+            <span class="metric-label">Stages</span>
+            <span class="metric-value">${gameProgress.completedStages || 0} / ${gameProgress.totalStages || 3}</span>
+            <span class="metric-sub">Campaign Stages</span>
+          </div>
+          <div class="game-progress-metric-item">
+            <span class="metric-label">Discoveries</span>
+            <span class="metric-value">${gameProgress.discoveredInscriptions || 0} / ${gameProgress.totalInscriptions || 5}</span>
+            <span class="metric-sub">Ancient Inscriptions</span>
+          </div>
+          <div class="game-progress-metric-item">
+            <span class="metric-label">Realms</span>
+            <span class="metric-value">${gameProgress.unlockedRealms || 1} / ${gameProgress.totalRealms || 3}</span>
+            <span class="metric-sub">Explored Realms</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Relic & Clue Discoveries Section -->
       <div class="dashboard-discoveries-section">
         <div class="section-title-row">
@@ -200,10 +244,15 @@ const playerDashboard = {
     const nameEl = document.getElementById('headerPlayerName');
     const lvlEl = document.getElementById('headerPlayerLevel');
     const hpBar = document.getElementById('headerHealthBar');
+    const avatarEl = document.getElementById('headerPlayerAvatar') || document.querySelector('.hud-avatar');
 
     if (nameEl) nameEl.textContent = user.name || 'Explorer';
     if (lvlEl) lvlEl.textContent = `LVL ${level}`;
     if (hpBar) hpBar.style.width = `${Math.round((health / maxHealth) * 100)}%`;
+    if (avatarEl && user?.name) {
+      const initial = user.name.trim().charAt(0).toUpperCase();
+      if (initial) avatarEl.textContent = initial;
+    }
   },
 
   escapeHtml(str) {

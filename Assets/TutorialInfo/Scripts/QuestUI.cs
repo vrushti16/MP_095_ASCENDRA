@@ -60,6 +60,8 @@ public class ClueInteraction : MonoBehaviour
 
     if (continueText != null)
       continueText.text = "Press E to Close";
+
+    AscendraUnityBridge.Instance?.NotifyClueDiscovered("clue_village_inscription_1");
   }
 
   private void CloseClue()

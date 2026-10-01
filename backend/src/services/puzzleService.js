@@ -320,6 +320,21 @@ async function submitPuzzleAttempt({ puzzleId, playerId, answer, timeTakenSecond
       ]
     );
 
+    // 8. Authoritatively evaluate & unlock achievements if puzzle was solved correctly
+    let newlyUnlockedAchievements = [];
+    if (isCorrect && !previouslySolved) {
+      try {
+        const achievementService = require('./achievementService');
+        const achResult = await achievementService.evaluateAndSyncPlayerAchievements({
+          userId: playerId,
+          client
+        });
+        newlyUnlockedAchievements = achResult.newlyUnlocked || [];
+      } catch (e) {
+        console.warn('[puzzleService] Achievement sync note:', e.message);
+      }
+    }
+
     await client.query('COMMIT');
 
     return {
@@ -338,7 +353,8 @@ async function submitPuzzleAttempt({ puzzleId, playerId, answer, timeTakenSecond
         content: unlockedClue.content,
         sequenceNumber: unlockedClue.sequenceNumber,
         discoveredAt: unlockedClue.discoveredAt
-      } : null
+      } : null,
+      newlyUnlockedAchievements
     };
   } catch (err) {
     await client.query('ROLLBACK');

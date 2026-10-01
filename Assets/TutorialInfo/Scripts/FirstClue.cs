@@ -211,6 +211,7 @@ public class FirstClue : MonoBehaviour
         Quaternion triggerPlayerRot = playerObj.transform.rotation;
 
         Debug.Log($"[ASCENDRA EXPLORATION] Player reached clue trigger at {triggerPlayerPos}! Initializing puzzle...");
+        AscendraUnityBridge.Instance?.NotifyClueDiscovered("clue_village_inscription_1");
         OpenPuzzle(playerObj, triggerPlayerPos, triggerPlayerRot);
     }
 
@@ -345,6 +346,8 @@ public class FirstClue : MonoBehaviour
         {
             QuestManager.Instance.UpdateObjective("Follow the clue to the next location");
         }
+
+        AscendraUnityBridge.Instance?.NotifyPuzzleSolved("PZ-001");
     }
 
     private void OnEnvironmentCleanedUp()

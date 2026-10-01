@@ -61,7 +61,7 @@ describe('Gmail Email OTP Password Reset Flow (/api/v1/auth/forgot-password)', (
   });
 
   describe('1. Request OTP (POST /api/v1/auth/forgot-password/request-otp)', () => {
-    it('should return success message for registered email and send email with 6-digit OTP', async () => {
+    it('should return success message for registered email and send email with 5-digit OTP', async () => {
       const res = await request(app)
         .post('/api/v1/auth/forgot-password/request-otp')
         .send({ email: testUser.email });
@@ -73,11 +73,11 @@ describe('Gmail Email OTP Password Reset Flow (/api/v1/auth/forgot-password)', (
       expect(res.body.otp).toBeUndefined();
       expect(res.body.data?.otp).toBeUndefined();
 
-      // Verify email was dispatched with 6-digit OTP
+      // Verify email was dispatched with 5-digit OTP
       const sentEmails = emailService.getSentEmailsForTesting();
       expect(sentEmails.length).toBe(1);
       expect(sentEmails[0].to).toBe(testUser.email);
-      expect(sentEmails[0].otpCode).toMatch(/^\d{6}$/);
+      expect(sentEmails[0].otpCode).toMatch(/^\d{5}$/);
 
       // Verify database stored HMAC hash and NOT plaintext OTP
       const dbRes = await query(
@@ -185,7 +185,7 @@ describe('Gmail Email OTP Password Reset Flow (/api/v1/auth/forgot-password)', (
         .post('/api/v1/auth/forgot-password/verify-otp')
         .send({
           email: testUser.email,
-          otp: '000000' // wrong OTP
+          otp: '00000' // wrong 5-digit OTP
         });
 
       expect(res.status).toBe(400);
@@ -206,13 +206,13 @@ describe('Gmail Email OTP Password Reset Flow (/api/v1/auth/forgot-password)', (
       for (let i = 0; i < 4; i++) {
         await request(app)
           .post('/api/v1/auth/forgot-password/verify-otp')
-          .send({ email: testUser.email, otp: '111111' });
+          .send({ email: testUser.email, otp: '11111' });
       }
 
       // 5th attempt
       const res = await request(app)
         .post('/api/v1/auth/forgot-password/verify-otp')
-        .send({ email: testUser.email, otp: '111111' });
+        .send({ email: testUser.email, otp: '11111' });
 
       expect(res.status).toBe(429);
       expect(res.body.success).toBe(false);

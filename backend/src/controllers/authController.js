@@ -159,7 +159,8 @@ async function requestPasswordResetOtp(req, res, next) {
     return sendSuccess(res, {}, result.genericMessage);
   } catch (err) {
     if (err.name === 'AuthError') {
-      return sendError(res, err.message, err.code, err.statusCode);
+      const extra = err.waitSeconds !== undefined ? { waitSeconds: err.waitSeconds } : null;
+      return sendError(res, err.message, err.code, err.statusCode, extra);
     }
     if (err.message && err.message.includes('Email service is not configured')) {
       return sendError(res, err.message, 'EMAIL_NOT_CONFIGURED', 503);
@@ -169,7 +170,7 @@ async function requestPasswordResetOtp(req, res, next) {
 }
 
 /**
- * Verify 6-digit OTP code and retrieve scoped reset token
+ * Verify 5-digit OTP code and retrieve scoped reset token
  * POST /api/v1/auth/forgot-password/verify-otp
  */
 async function verifyPasswordResetOtp(req, res, next) {
@@ -179,7 +180,7 @@ async function verifyPasswordResetOtp(req, res, next) {
       return sendError(res, 'A valid email address is required', 'VALIDATION_ERROR', 400);
     }
     if (!otp || (typeof otp !== 'string' && typeof otp !== 'number')) {
-      return sendError(res, 'A 6-digit verification code is required', 'VALIDATION_ERROR', 400);
+      return sendError(res, 'A 5-digit verification code is required', 'VALIDATION_ERROR', 400);
     }
 
     const result = await passwordResetService.verifyOtp(email, otp.toString());

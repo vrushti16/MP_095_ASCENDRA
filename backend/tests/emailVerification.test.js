@@ -532,12 +532,12 @@ describe('Real Gmail Email Verification System (/api/v1/auth/register)', () => {
     const sentEmails = emailService.getSentEmailsForTesting();
     const regOtp = sentEmails[sentEmails.length - 1].otpCode;
 
-    // Try to use that registration OTP on password reset endpoint
+    // Try to use that registration OTP (truncated to 5-digit reset format) on password reset endpoint
     const res = await request(app)
       .post('/api/v1/auth/forgot-password/verify-otp')
       .send({
         email: crossEmail2,
-        otp: regOtp
+        otp: regOtp.slice(0, 5)
       });
 
     expect(res.status).toBe(400);

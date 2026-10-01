@@ -27,6 +27,19 @@ class PlayerApp {
       }
     });
 
+    // Hash-based direct link routing
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '').trim();
+      if (this.sections.includes(hash)) {
+        this.navigateTo(hash);
+      }
+    });
+
+    const initialHash = window.location.hash.replace('#', '').trim();
+    if (this.sections.includes(initialHash)) {
+      this.currentSection = initialHash;
+    }
+
     // Mobile nav toggle
     this.sidebar = document.getElementById('playerSidebar');
     this.mobileToggle = document.getElementById('playerMobileToggle');
@@ -49,6 +62,25 @@ class PlayerApp {
     if (profileForm) {
       profileForm.addEventListener('submit', (e) => this.handleProfileUpdate(e));
     }
+
+    // Top-right HUD profile chip (opens Character page)
+    this.headerProfileChip = document.getElementById('headerProfileChip') || document.querySelector('.hud-player-chip');
+    if (this.headerProfileChip) {
+      this.headerProfileChip.style.cursor = 'pointer';
+      this.headerProfileChip.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.navigateTo('profile');
+        this.closeMobileNav();
+      });
+      this.headerProfileChip.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.navigateTo('profile');
+          this.closeMobileNav();
+        }
+      });
+    }
   }
 
   closeMobileNav() {
@@ -61,6 +93,10 @@ class PlayerApp {
     if (!this.sections.includes(sectionId)) return;
 
     this.currentSection = sectionId;
+
+    if (window.location.hash !== `#${sectionId}`) {
+      window.history.replaceState(null, '', `#${sectionId}`);
+    }
 
     // Update active nav states
     this.sections.forEach(id => {
@@ -88,6 +124,10 @@ class PlayerApp {
   }
 
   loadCurrentSection(contextParam = null) {
+    if (this.currentSection !== 'achievements' && window.playerAchievements) {
+      window.playerAchievements.stopAutoSync();
+    }
+
     switch (this.currentSection) {
       case 'dashboard':
         if (window.playerDashboard) window.playerDashboard.render();
@@ -126,20 +166,61 @@ class PlayerApp {
     const scoreDisplay = document.getElementById('profileScoreDisplay');
     const xpDisplay = document.getElementById('profileXpDisplay');
 
+    // Unity Game Progression elements
+    const completedBadge = document.getElementById('profileCompletedGamesBadge');
+    const gamerLevelText = document.getElementById('profileGamerLevelText');
+    const completedGamesText = document.getElementById('profileCompletedGamesText');
+    const completionRateText = document.getElementById('profileCompletionRateText');
+    const completionBar = document.getElementById('profileCompletionBar');
+
     try {
-      const data = await window.playerApi.getProfile();
+      const [data, progressionData] = await Promise.all([
+        window.playerApi.getProfile().catch(() => null),
+        window.playerApi.getProgression().catch(() => null)
+      ]);
       const u = data?.user || window.playerApi.getUser() || {};
       const p = data?.profile || {};
+      const progPlayer = progressionData?.player || {};
+      const gameProgress = progressionData?.gameProgress || {};
+
+      const level = progPlayer.level || p.level || 1;
+      const experience = progPlayer.xp ?? (p.experience || 0);
+      const score = progPlayer.score ?? (p.score || 0);
+      const completed = gameProgress.completedQuests || 0;
+      const total = gameProgress.totalQuests || 3;
+      const rate = gameProgress.overallPercentage !== undefined ? gameProgress.overallPercentage : Math.round((completed / Math.max(1, total)) * 100);
 
       if (nameInput) nameInput.value = u.name || '';
       if (emailDisplay) emailDisplay.textContent = u.email || 'N/A';
       if (roleDisplay) roleDisplay.textContent = (u.role || 'player').toUpperCase();
       if (createdDisplay) createdDisplay.textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A';
-      if (levelDisplay) levelDisplay.textContent = `Level ${p.level || 1}`;
-      if (scoreDisplay) scoreDisplay.textContent = `${(p.score || 0).toLocaleString()} pts`;
-      if (xpDisplay) xpDisplay.textContent = `${(p.experience || 0).toLocaleString()} XP`;
-    } catch {
-      // Fallback
+      if (levelDisplay) levelDisplay.textContent = `Level ${level}`;
+      if (scoreDisplay) scoreDisplay.textContent = `${score.toLocaleString()} pts`;
+      if (xpDisplay) xpDisplay.textContent = `${experience.toLocaleString()} XP`;
+
+      if (completedBadge) completedBadge.textContent = `${completed} Completed`;
+      if (gamerLevelText) gamerLevelText.textContent = `Level ${level}`;
+      if (completedGamesText) completedGamesText.textContent = `${completed} / ${total} Quests`;
+      if (completionRateText) completionRateText.textContent = `${rate}%`;
+      if (completionBar) completionBar.style.width = `${rate}%`;
+
+      // Update header avatar, name, and level
+      this.updateHeaderStats(u, level);
+    } catch (err) {
+      console.warn('Failed to load profile:', err);
+    }
+  }
+
+  updateHeaderStats(user, level) {
+    const nameEl = document.getElementById('headerPlayerName');
+    const lvlEl = document.getElementById('headerPlayerLevel');
+    const avatarEl = document.getElementById('headerPlayerAvatar') || document.querySelector('.hud-avatar');
+
+    if (nameEl && user?.name) nameEl.textContent = user.name;
+    if (lvlEl && level) lvlEl.textContent = `LVL ${level}`;
+    if (avatarEl && user?.name) {
+      const initial = user.name.trim().charAt(0).toUpperCase();
+      if (initial) avatarEl.textContent = initial;
     }
   }
 
@@ -162,9 +243,8 @@ class PlayerApp {
         statusMsg.textContent = 'Explorer identity successfully updated.';
         statusMsg.className = 'text-success small';
       }
-      // Update header
-      const headerName = document.getElementById('headerPlayerName');
-      if (headerName) headerName.textContent = newName;
+      // Update header stats with new name
+      this.updateHeaderStats({ name: newName }, null);
     } catch (err) {
       if (statusMsg) {
         statusMsg.textContent = `Update failed: ${err.message}`;

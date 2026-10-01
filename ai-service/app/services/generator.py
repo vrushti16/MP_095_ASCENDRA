@@ -16,18 +16,12 @@ def build_system_prompt(request: PuzzleGenerateRequest) -> str:
     return get_system_prompt()
 
 async def generate_with_gemini(request: PuzzleGenerateRequest) -> Dict[str, Any]:
-    """Generate puzzle using Google Gemini API with model & key rotation."""
+    """Generate puzzle using Google Gemini API with multi-key failover and model rotation."""
     import google.generativeai as genai
 
-    keys = [
-        getattr(settings, "GEMINI_API_KEY_1", None),
-        getattr(settings, "GEMINI_API_KEY_2", None),
-        getattr(settings, "GEMINI_API_KEY_3", None),
-        settings.GEMINI_API_KEY,
-    ]
-    active_keys = [k for k in keys if k and k.strip()]
-    if not active_keys:
-        raise ValueError("GEMINI_API_KEY is not configured in settings.")
+    keys = settings.get_gemini_keys()
+    if not keys:
+        raise ValueError("No Gemini API keys configured.")
 
     system_prompt = get_system_prompt()
     user_prompt = build_user_prompt(request)
@@ -42,7 +36,6 @@ async def generate_with_gemini(request: PuzzleGenerateRequest) -> Dict[str, Any]
         "gemini-flash-lite-latest",
         "gemini-3.8-flash"
     ]
-    # Remove duplicates while preserving order
     seen = set()
     deduped_models = []
     for m in target_models:
@@ -51,7 +44,7 @@ async def generate_with_gemini(request: PuzzleGenerateRequest) -> Dict[str, Any]
             deduped_models.append(m)
 
     last_ex = None
-    for api_key in active_keys:
+    for idx, api_key in enumerate(keys, 1):
         genai.configure(api_key=api_key)
         for model_name in deduped_models:
             try:
@@ -61,15 +54,15 @@ async def generate_with_gemini(request: PuzzleGenerateRequest) -> Dict[str, Any]
                     generation_config={"response_mime_type": "application/json"},
                     request_options={"timeout": 30.0}
                 )
-                logger.info(f"Successfully generated puzzle with model {model_name}")
+                logger.info(f"Successfully generated puzzle with model {model_name} (key #{idx})")
                 return json.loads(response.text)
             except Exception as e:
                 last_ex = e
-                logger.warning(f"Model {model_name} with API key failed: {e}. Trying next option...")
+                logger.warning(f"Model {model_name} with API key #{idx} failed: {e}. Trying next option...")
 
     if last_ex is not None:
         raise last_ex
-    raise RuntimeError("All Gemini API keys and models failed to generate content.")
+    raise RuntimeError("All configured Gemini API keys and models failed.")
 
 async def generate_with_openai(request: PuzzleGenerateRequest) -> Dict[str, Any]:
     """Generate puzzle using OpenAI API."""
@@ -107,14 +100,22 @@ async def generate_puzzle_service(request: PuzzleGenerateRequest) -> PuzzleGener
         try:
             raw_puzzle: Dict[str, Any] = {}
 
-            # Check active LLM provider
-            if settings.LLM_PROVIDER == "gemini":
-                raw_puzzle = await generate_with_gemini(request)
-            elif settings.LLM_PROVIDER == "openai":
-                raw_puzzle = await generate_with_openai(request)
+            # Check if active LLM provider is configured
+            if settings.LLM_PROVIDER == "gemini" and settings.get_gemini_keys():
+                try:
+                    raw_puzzle = await generate_with_gemini(request)
+                except Exception as e:
+                    logger.warning(f"Gemini API call failed: {e}. Falling back to catalog.")
+                    raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
+            elif settings.LLM_PROVIDER == "openai" and settings.OPENAI_API_KEY:
+                try:
+                    raw_puzzle = await generate_with_openai(request)
+                except Exception as e:
+                    logger.warning(f"OpenAI API call failed: {e}. Falling back to catalog.")
+                    raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
             else:
                 # Deterministic catalog generator ONLY if provider is explicitly set to offline/catalog
-                logger.info("LLM_PROVIDER set to offline. Using catalog puzzle.")
+                logger.info("LLM_PROVIDER set to offline or keys not configured. Using catalog puzzle.")
                 raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
 
             # Assign external ID and spec version if missing
