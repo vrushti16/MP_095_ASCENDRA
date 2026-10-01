@@ -41,8 +41,10 @@ const analytics = {
   renderAnalytics(container, data) {
     const quests = data?.quests || {};
     const puzzles = data?.puzzles || {};
+    const clues = data?.clues || {};
     const progression = data?.progression || {};
     const topicBreakdown = puzzles.topicBreakdown || [];
+    const clueBreakdown = clues.breakdown || [];
     const levelDistribution = progression.levelDistribution || [];
     const topPlayers = progression.topPlayers || [];
 
@@ -84,6 +86,17 @@ const analytics = {
           </div>
           <div class="kpi-value">${puzzles.averageTimeSeconds || 0}s</div>
           <div class="kpi-meta text-muted">Active calculation & deduction time</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Clue Discoveries</span>
+            <span class="kpi-icon">🗝️</span>
+          </div>
+          <div class="kpi-value text-warning">${clues.totalPlayersWithClues || 0}</div>
+          <div class="kpi-meta text-muted">
+            ${clues.totalDiscoveries || 0} total discoveries across players
+          </div>
         </div>
       </div>
 
@@ -156,6 +169,40 @@ const analytics = {
                 </div>
               `}
             </div>
+          </div>
+        </div>
+
+        <!-- Clue Discovery & Trigger Breakdown -->
+        <div class="panel-card" style="grid-column: 1 / -1;">
+          <div class="panel-header">
+            <h3>Clue Discovery & Trigger Breakdown</h3>
+            <span class="text-muted small">Tracking how many players have triggered each quest clue</span>
+          </div>
+          <div class="panel-body">
+            ${clueBreakdown.length === 0 ? '<p class="text-muted">No clues registered or discovered yet.</p>' : `
+              <div class="table-responsive">
+                <table class="data-table" style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; padding: 0.75rem;">Clue Title</th>
+                      <th style="text-align: left; padding: 0.75rem;">Clue ID</th>
+                      <th style="text-align: left; padding: 0.75rem;">Quest Association</th>
+                      <th style="text-align: right; padding: 0.75rem;">Players Triggered</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${clueBreakdown.map(c => `
+                      <tr>
+                        <td style="padding: 0.75rem;"><strong>${this.escapeHtml(c.clueTitle || '')}</strong></td>
+                        <td style="padding: 0.75rem;"><code>${this.escapeHtml(c.clueId || '')}</code></td>
+                        <td style="padding: 0.75rem;"><span class="badge badge-subtle">${this.escapeHtml(c.questId || '')}</span></td>
+                        <td style="text-align: right; padding: 0.75rem;"><span class="badge badge-primary">${c.playersDiscovered || 0} players</span></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
           </div>
         </div>
       </div>
