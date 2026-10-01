@@ -2,7 +2,10 @@ const axios = require('axios');
 const database = require('../config/database');
 const redisConfig = require('../config/redis');
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const rawAiUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_SERVICE_URL = (rawAiUrl.startsWith('http://') || rawAiUrl.startsWith('https://'))
+  ? rawAiUrl.replace(/\/+$/, '')
+  : `https://${rawAiUrl.replace(/\/+$/, '')}`;
 const HEALTH_TIMEOUT_MS = 2500;
 
 /**

@@ -1,0 +1,21 @@
+{
+  "name": "ascendra-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ASCENDRA Fullstack AI Educational RPG Platform",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed",
+    "db:seed:demo": "cd backend && npm run db:seed:demo",
+    "test": "cd backend && npm test"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "dependencies": {
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.4.8"
+  }
+}

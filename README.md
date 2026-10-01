@@ -146,6 +146,7 @@ MP_095_ASCENDRA/
 │   ├── ADMIN_API.md               # Administrative API contracts
 │   ├── ADMIN_DASHBOARD.md         # Admin console specifications
 │   ├── AI_PUZZLE_SPECIFICATION.md # Multi-modal puzzle schemas & non-coding policies
+│   ├── DEPLOYMENT_GUIDE.md        # Zero-Docker cloud deployment guide (Render + Neon + Upstash)
 │   ├── DEVOPS_WORKFLOW.md         # CI/CD, Git branching, and testing standards
 │   ├── FRONTEND_ENVIRONMENT.md    # Frontend configuration & auth guide
 │   ├── PLAYER_WEB_CLIENT.md       # Player client design & WebGL integration
@@ -153,6 +154,8 @@ MP_095_ASCENDRA/
 ├── scripts/                       # DevOps & repository tooling
 │   └── check-secrets.js           # Pre-commit & CI lightweight credential scanner
 ├── .env.example                   # Unified environment configuration template
+├── package.json                   # Root orchestrator for zero-docker cloud builds
+├── render.yaml                    # 1-Click Render Blueprint infrastructure
 └── README.md                      # Repository root documentation
 ```
 
@@ -327,7 +330,8 @@ For detailed architectural specifications, refer to the documentation in [`docs/
 
 * 📘 [AI Puzzle Specification & Generation Contract](docs/AI_PUZZLE_SPECIFICATION.md)
 * 🛡️ [Full-Stack Security Audit & Vulnerability Report](docs/SECURITY_AUDIT.md)
-* 🚀 [DevOps & Engineering Workflow Guide](docs/DEVOPS_WORKFLOW.md)
+* 🚀 [Zero-Docker Cloud Deployment Guide (Render + Neon + Upstash)](docs/DEPLOYMENT_GUIDE.md)
+* 🔧 [DevOps & Engineering Workflow Guide](docs/DEVOPS_WORKFLOW.md)
 * 🎮 [Player Web Client & WebGL Shell](docs/PLAYER_WEB_CLIENT.md)
 * 📊 [Admin Operations Dashboard Specifications](docs/ADMIN_DASHBOARD.md)
 * 🔑 [Frontend Environment & Dual Google Authentication](docs/FRONTEND_ENVIRONMENT.md)

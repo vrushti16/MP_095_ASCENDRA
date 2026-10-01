@@ -10,7 +10,10 @@ class AiServiceError extends Error {
   }
 }
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const rawAiUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_SERVICE_URL = (rawAiUrl.startsWith('http://') || rawAiUrl.startsWith('https://'))
+  ? rawAiUrl.replace(/\/+$/, '')
+  : `https://${rawAiUrl.replace(/\/+$/, '')}`;
 const AI_TIMEOUT_MS = parseInt(process.env.AI_TIMEOUT_MS, 10) || 5000;
 const MAX_RETRIES = 2; // Total 3 attempts allowed
 
