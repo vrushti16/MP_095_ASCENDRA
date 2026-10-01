@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,6 +19,8 @@ namespace Cainos.PixelArtTopDown_Basic
             targetColor = runes[0].color;
         }
 
+        // Unused 2D triggers commented out to prevent Unity WebGL UNREGISTERED Collider2D engine errors
+        /*
         private void OnTriggerEnter2D(Collider2D other)
         {
             targetColor.a = 1.0f;
@@ -28,6 +30,7 @@ namespace Cainos.PixelArtTopDown_Basic
         {
             targetColor.a = 0.0f;
         }
+        */
 
         private void Update()
         {

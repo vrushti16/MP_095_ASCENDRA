@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,6 +17,8 @@ namespace Cainos.PixelArtTopDown_Basic
         public string layerLower;
         public string sortingLayerLower;
 
+        // Unused 2D triggers commented out to prevent Unity WebGL UNREGISTERED Collider2D engine errors
+        /*
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (direction == Direction.South && other.transform.position.y < transform.position.y) SetLayerAndSortingLayer(other.gameObject, layerUpper, sortingLayerUpper);
@@ -35,6 +37,7 @@ namespace Cainos.PixelArtTopDown_Basic
             else
             if (direction == Direction.East && other.transform.position.x > transform.position.x) SetLayerAndSortingLayer(other.gameObject, layerLower, sortingLayerLower);
         }
+        */
 
         private void SetLayerAndSortingLayer( GameObject target, string layer, string sortingLayer )
         {
