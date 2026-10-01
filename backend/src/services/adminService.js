@@ -412,11 +412,29 @@ async function getGameAnalytics() {
       JOIN users u ON p.user_id = u.id
       ORDER BY p.score DESC
       LIMIT 5;
+    `),
+    database.query(`
+      SELECT
+        COUNT(DISTINCT player_id)::int AS total_players_with_clues,
+        COUNT(id)::int AS total_clue_discoveries
+      FROM player_clues;
+    `),
+    database.query(`
+      SELECT
+        c.id AS "clueId",
+        c.title AS "clueTitle",
+        c.quest_id AS "questId",
+        COUNT(pc.player_id)::int AS "playersDiscovered"
+      FROM clues c
+      LEFT JOIN player_clues pc ON c.id = pc.clue_id
+      GROUP BY c.id, c.title, c.quest_id
+      ORDER BY "playersDiscovered" DESC, c.id ASC;
     `)
   ]);
 
   const qStats = questStatsRes.rows[0];
   const pStats = puzzleStatsRes.rows[0];
+  const cStats = clueStatsRes.rows[0];
 
   const totalQuests = parseInt(qStats.total_active_quests, 10) || 0;
   const startedQuests = parseInt(qStats.total_started_quests, 10) || 0;
@@ -452,6 +470,11 @@ async function getGameAnalytics() {
       accuracyRate,
       averageTimeSeconds: avgTimeSeconds,
       topicBreakdown
+    },
+    clues: {
+      totalPlayersWithClues: parseInt(cStats?.total_players_with_clues, 10) || 0,
+      totalDiscoveries: parseInt(cStats?.total_clue_discoveries, 10) || 0,
+      breakdown: clueBreakdownRes.rows
     },
     progression: {
       levelDistribution: levelsRes.rows.map(r => ({ level: r.level, count: parseInt(r.count, 10) })),
