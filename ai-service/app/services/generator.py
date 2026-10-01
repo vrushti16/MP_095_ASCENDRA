@@ -83,7 +83,10 @@ async def generate_with_openai(request: PuzzleGenerateRequest) -> Dict[str, Any]
         ],
         response_format={"type": "json_object"}
     )
-    return json.loads(response.choices[0].message.content)
+    content = response.choices[0].message.content
+    if not content:
+        raise ValueError("Empty response received from OpenAI API.")
+    return json.loads(content)
 
 async def generate_puzzle_service(request: PuzzleGenerateRequest) -> PuzzleGenerateResponse:
     """
