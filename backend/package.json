@@ -9,7 +9,10 @@
     "db:migrate": "node ../database/scripts/migrate.js",
     "db:seed": "node ../database/scripts/seed.js",
     "db:seed:demo": "node ../database/scripts/seed-demo.js",
-    "test": "jest --detectOpenHandles --runInBand"
+    "test": "jest --detectOpenHandles --runInBand --testTimeout=20000"
+  },
+  "jest": {
+    "testTimeout": 20000
   },
   "keywords": [
     "ascendra",

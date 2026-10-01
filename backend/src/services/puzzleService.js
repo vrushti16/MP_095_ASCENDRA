@@ -228,12 +228,16 @@ async function submitPuzzleAttempt({ puzzleId, playerId, answer, timeTakenSecond
 
     const puzzle = puzzleRes.rows[0];
 
-    // 2. Lock attempts for this player and puzzle FOR UPDATE to prevent race conditions
+    // 2. Lock for this player and puzzle using transaction-scoped advisory lock to prevent race conditions on phantom rows
+    await client.query(
+      `SELECT pg_advisory_xact_lock(hashtext($1 || ':' || $2));`,
+      [playerId, puzzleId]
+    );
+
     const attemptsRes = await client.query(
       `SELECT id, is_correct, attempt_number
        FROM puzzle_attempts
-       WHERE player_id = $1 AND puzzle_id = $2
-       FOR UPDATE;`,
+       WHERE player_id = $1 AND puzzle_id = $2;`,
       [playerId, puzzleId]
     );
 

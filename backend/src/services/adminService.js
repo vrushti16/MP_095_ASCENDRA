@@ -369,7 +369,15 @@ async function updateUserRole(userId, newRole) {
  * Calculate game & learning progression analytics from database entities
  */
 async function getGameAnalytics() {
-  const [questStatsRes, puzzleStatsRes, topicsRes, levelsRes, topPlayersRes] = await Promise.all([
+  const [
+    questStatsRes,
+    puzzleStatsRes,
+    topicsRes,
+    levelsRes,
+    topPlayersRes,
+    clueStatsRes,
+    clueBreakdownRes
+  ] = await Promise.all([
     database.query(`
       SELECT
         (SELECT COUNT(*) FROM quests WHERE status = 'active') AS total_active_quests,

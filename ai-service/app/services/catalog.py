@@ -1,4 +1,5 @@
 import uuid
+import copy
 from typing import Dict, Any, List, Optional
 
 # Diverse, high-quality, non-coding educational puzzle templates for offline testing and fallback
@@ -229,8 +230,8 @@ def find_catalog_puzzle(topic: str, difficulty: str = "easy", interaction_type: 
         if sub:
             candidates = sub
 
-    # Choose candidate and copy
-    chosen = dict(candidates[0])
+    # Choose candidate and deep copy to prevent mutation
+    chosen = copy.deepcopy(candidates[0])
 
     # Assign dynamic IDs
     chosen["externalPuzzleId"] = f"ai_{uuid.uuid4().hex[:12]}"

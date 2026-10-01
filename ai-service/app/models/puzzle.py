@@ -53,12 +53,16 @@ class PuzzleGenerateRequest(BaseModel):
     @classmethod
     def validate_topic(cls, v: str) -> str:
         norm = v.strip().lower().replace(" ", "_").replace("-", "_")
+        if norm not in SUPPORTED_DOMAINS:
+            raise ValueError(f"Unsupported topic '{norm}'. Must be one of: {', '.join(sorted(SUPPORTED_DOMAINS))}")
         return norm
 
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, v: str) -> str:
         norm = v.strip().lower()
+        if norm not in SUPPORTED_DIFFICULTIES:
+            raise ValueError(f"Unsupported difficulty '{norm}'. Must be one of: {', '.join(sorted(SUPPORTED_DIFFICULTIES))}")
         return norm
 
     @field_validator("interactionType")
@@ -67,6 +71,8 @@ class PuzzleGenerateRequest(BaseModel):
         if v is None:
             return None
         norm = v.strip().lower()
+        if norm not in SUPPORTED_INTERACTION_TYPES:
+            raise ValueError(f"Unsupported interactionType '{norm}'. Must be one of: {', '.join(sorted(SUPPORTED_INTERACTION_TYPES))}")
         return norm
 
 

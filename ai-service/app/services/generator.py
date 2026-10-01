@@ -100,22 +100,21 @@ async def generate_puzzle_service(request: PuzzleGenerateRequest) -> PuzzleGener
         try:
             raw_puzzle: Dict[str, Any] = {}
 
-            # Check if active LLM provider is configured
-            if settings.LLM_PROVIDER == "gemini" and settings.get_gemini_keys():
+            # Check if active LLM provider is configured (bypass in test environment)
+            if settings.ENVIRONMENT != "test" and settings.LLM_PROVIDER == "gemini" and settings.get_gemini_keys():
                 try:
                     raw_puzzle = await generate_with_gemini(request)
                 except Exception as e:
                     logger.warning(f"Gemini API call failed: {e}. Falling back to catalog.")
                     raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
-            elif settings.LLM_PROVIDER == "openai" and settings.OPENAI_API_KEY:
+            elif settings.ENVIRONMENT != "test" and settings.LLM_PROVIDER == "openai" and settings.OPENAI_API_KEY:
                 try:
                     raw_puzzle = await generate_with_openai(request)
                 except Exception as e:
                     logger.warning(f"OpenAI API call failed: {e}. Falling back to catalog.")
                     raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
             else:
-                # Deterministic catalog generator ONLY if provider is explicitly set to offline/catalog
-                logger.info("LLM_PROVIDER set to offline or keys not configured. Using catalog puzzle.")
+                # Deterministic catalog generator for tests or when LLM is offline
                 raw_puzzle = find_catalog_puzzle(request.topic, request.difficulty, request.interactionType, request.type)
 
             # Assign external ID and spec version if missing

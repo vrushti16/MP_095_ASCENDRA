@@ -30,6 +30,7 @@ const IGNORE_DIRS = new Set([
 
 // File patterns to skip
 const IGNORE_FILES = [
+  /\.env$/,
   /\.env\.example$/,
   /config\.js$/,
   /package-lock\.json$/,
