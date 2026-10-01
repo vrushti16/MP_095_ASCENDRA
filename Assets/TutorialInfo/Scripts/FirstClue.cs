@@ -165,8 +165,28 @@ public class FirstClue : MonoBehaviour
         return samplePuzzleJson;
     }
 
+    public void SetAiBackendUrl(string url)
+    {
+        if (!string.IsNullOrEmpty(url))
+        {
+            aiBackendUrl = url;
+            PlayerPrefs.SetString("ASCENDRA_AI_URL", url);
+            PlayerPrefs.Save();
+            Debug.Log($"[FirstClue] AI Backend URL configured to: {aiBackendUrl}");
+        }
+    }
+
     private void Start()
     {
+        if (PlayerPrefs.HasKey("ASCENDRA_AI_URL"))
+        {
+            string customAiUrl = PlayerPrefs.GetString("ASCENDRA_AI_URL");
+            if (!string.IsNullOrEmpty(customAiUrl))
+            {
+                aiBackendUrl = customAiUrl;
+            }
+        }
+
         if (puzzlePanel != null)
             puzzlePanel.SetActive(false);
 

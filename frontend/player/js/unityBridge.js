@@ -30,12 +30,15 @@ const AscendraUnityBridge = {
   sendTokenToUnity() {
     const iframe = document.getElementById('unityGameIframe');
     const token = window.playerApi?.getToken();
+    const apiUrl = window.ASCENDRA_CONFIG?.API_BASE_URL || '/api/v1';
+    const fullApiUrl = apiUrl.startsWith('http') ? apiUrl : `${window.location.origin}${apiUrl}`;
     if (iframe && iframe.contentWindow && token) {
       iframe.contentWindow.postMessage({
         type: 'ASCENDRA_SET_TOKEN',
-        token: token
+        token: token,
+        apiUrl: fullApiUrl
       }, '*');
-      console.log('[ASCENDRA] Dispatched active session token to Unity WebGL frame.');
+      console.log('[ASCENDRA] Dispatched active session token and API URL to Unity WebGL frame.');
     }
   },
 

@@ -33,6 +33,31 @@ public class AscendraUnityBridge : MonoBehaviour
         {
             playerToken = PlayerPrefs.GetString("ASCENDRA_AUTH_TOKEN", "");
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        if (!string.IsNullOrEmpty(Application.absoluteURL))
+        {
+            try
+            {
+                Uri pageUri = new Uri(Application.absoluteURL);
+                backendApiUrl = $"{pageUri.Scheme}://{pageUri.Authority}/api/v1";
+                Debug.Log($"[AscendraUnityBridge] WebGL auto-detected API Gateway: {backendApiUrl}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[AscendraUnityBridge] Could not parse absoluteURL: {ex.Message}");
+            }
+        }
+#endif
+
+        if (PlayerPrefs.HasKey("ASCENDRA_BACKEND_URL"))
+        {
+            string savedUrl = PlayerPrefs.GetString("ASCENDRA_BACKEND_URL");
+            if (!string.IsNullOrEmpty(savedUrl))
+            {
+                backendApiUrl = savedUrl;
+            }
+        }
     }
 
     /// <summary>
@@ -44,6 +69,20 @@ public class AscendraUnityBridge : MonoBehaviour
         PlayerPrefs.SetString("ASCENDRA_AUTH_TOKEN", token);
         PlayerPrefs.Save();
         Debug.Log("[AscendraUnityBridge] Auth token set for active Unity session.");
+    }
+
+    /// <summary>
+    /// Dynamically configure or override the API Gateway URL
+    /// </summary>
+    public void SetApiBaseUrl(string url)
+    {
+        if (!string.IsNullOrEmpty(url))
+        {
+            backendApiUrl = url.TrimEnd('/');
+            PlayerPrefs.SetString("ASCENDRA_BACKEND_URL", backendApiUrl);
+            PlayerPrefs.Save();
+            Debug.Log($"[AscendraUnityBridge] API base URL configured to: {backendApiUrl}");
+        }
     }
 
     public void NotifyQuestStarted(string questId)
