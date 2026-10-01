@@ -42,9 +42,10 @@ const playerAdventure = {
   },
 
   renderAdventureView(container, quests, targetQuestId) {
-    // Select the requested quest or default to active/first
-    const starterQuest = quests.find(q => q.id === 'quest_village_basics');
-    const defaultQuest = activeQuests[0] || starterQuest || quests[0] || {
+    const questList = Array.isArray(quests) ? quests : [];
+    const activeQuests = questList.filter(q => q.playerProgress?.status === 'in_progress');
+    const starterQuest = questList.find(q => q.id === 'quest_village_basics');
+    const defaultQuest = activeQuests[0] || starterQuest || questList[0] || {
       id: 'quest_village_basics',
       title: 'Welcome to Ascendra: Village Awakening',
       description: 'Explore the starter village, inspect the surroundings, and discover your first set of ancient markings.',
@@ -55,7 +56,7 @@ const playerAdventure = {
       playerProgress: { status: 'not_started', progress: 0 }
     };
 
-    const currentQuest = (targetQuestId ? quests.find(q => q.id === targetQuestId) : null) || defaultQuest;
+    const currentQuest = (targetQuestId ? questList.find(q => q.id === targetQuestId) : null) || defaultQuest;
     this.selectedQuestId = currentQuest.id;
 
     const progress = currentQuest.playerProgress?.progress || 0;
@@ -75,45 +76,47 @@ const playerAdventure = {
           <button class="game-btn game-btn-sm" onclick="playerAdventure.toggleFullscreen()">
             ⛶ Fullscreen
           </button>
+          <a class="game-btn game-btn-sm game-btn-secondary" href="/webgl/index.html" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            ↗ Open in New Tab
+          </a>
         </div>
       </div>
 
       <!-- Unity WebGL Hosting Shell Canvas Frame -->
-      <div id="unityViewportContainer" class="unity-viewport-frame" style="position: relative; width: 100%; min-height: 620px; background: #0b0f19; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-        <iframe src="/webgl/index.html" id="unityGameIframe" style="width: 100%; height: 100%; min-height: 620px; border: none;" allowfullscreen title="ASCENDRA Unity WebGL Game"></iframe>
+      <div id="unityViewportContainer" class="unity-viewport-frame" style="position: relative; width: 100%; min-height: 640px; background: #0b0f19; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45); margin-bottom: 24px;">
+        <iframe src="/webgl/index.html" id="unityGameIframe" style="width: 100%; height: 640px; border: none;" allowfullscreen allow="autoplay; fullscreen" title="ASCENDRA Unity WebGL Game"></iframe>
       </div>
 
-        <!-- Quest Status Strip at Bottom of Adventure Shell -->
-        <div class="adventure-quest-strip">
-          <div class="strip-quest-details">
-            <span class="strip-label">CURRENT EXPEDITION OBJECTIVE</span>
-            <h3 class="strip-quest-name">${this.escapeHtml(currentQuest.title)}</h3>
-            <p class="strip-quest-desc">${this.escapeHtml(currentQuest.description)}</p>
-          </div>
+      <!-- Quest Status Strip at Bottom of Adventure Shell -->
+      <div class="adventure-quest-strip">
+        <div class="strip-quest-details">
+          <span class="strip-label">CURRENT EXPEDITION OBJECTIVE</span>
+          <h3 class="strip-quest-name">${this.escapeHtml(currentQuest.title)}</h3>
+          <p class="strip-quest-desc">${this.escapeHtml(currentQuest.description)}</p>
+        </div>
 
-          <div class="strip-progress-box">
-            <div class="strip-progress-header">
-              <span>Objective Progress</span>
-              <strong>${progress}%</strong>
-            </div>
-            <div class="game-progress-bar">
-              <div class="game-progress-fill glow-cyan" style="width: ${progress}%;"></div>
-            </div>
+        <div class="strip-progress-box">
+          <div class="strip-progress-header">
+            <span>Objective Progress</span>
+            <strong>${progress}%</strong>
           </div>
+          <div class="game-progress-bar">
+            <div class="game-progress-fill glow-cyan" style="width: ${progress}%;"></div>
+          </div>
+        </div>
 
-          <div class="strip-controls">
-            ${status === 'not_started' ? `
-              <button class="game-btn game-btn-cta" onclick="playerAdventure.startCurrentQuest('${this.escapeHtml(currentQuest.id)}')">
-                Embark on Quest
-              </button>
-            ` : status === 'in_progress' ? `
-              <button class="game-btn game-btn-primary" onclick="playerAdventure.advanceProgress('${this.escapeHtml(currentQuest.id)}')">
-                Interact with Mechanism
-              </button>
-            ` : `
-              <span class="badge-completed">✓ Quest Completed</span>
-            `}
-          </div>
+        <div class="strip-controls">
+          ${status === 'not_started' ? `
+            <button class="game-btn game-btn-cta" onclick="playerAdventure.startCurrentQuest('${this.escapeHtml(currentQuest.id)}')">
+              Embark on Quest
+            </button>
+          ` : status === 'in_progress' ? `
+            <button class="game-btn game-btn-primary" onclick="playerAdventure.advanceProgress('${this.escapeHtml(currentQuest.id)}')">
+              Interact with Mechanism
+            </button>
+          ` : `
+            <span class="badge-completed">✓ Quest Completed</span>
+          `}
         </div>
       </div>
 
