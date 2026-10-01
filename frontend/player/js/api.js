@@ -16,7 +16,7 @@ class PlayerApiClient {
   }
 
   getToken() {
-    return sessionStorage.getItem(this.tokenKey);
+    return sessionStorage.getItem(this.tokenKey) || localStorage.getItem(this.tokenKey);
   }
 
   isAuthenticated() {
@@ -24,12 +24,12 @@ class PlayerApiClient {
   }
 
   getRefreshToken() {
-    return sessionStorage.getItem(this.refreshTokenKey);
+    return sessionStorage.getItem(this.refreshTokenKey) || localStorage.getItem(this.refreshTokenKey);
   }
 
   getUser() {
     try {
-      const raw = sessionStorage.getItem(this.userKey);
+      const raw = sessionStorage.getItem(this.userKey) || localStorage.getItem(this.userKey);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -39,12 +39,16 @@ class PlayerApiClient {
   setSession(tokens, user) {
     if (tokens?.accessToken) {
       sessionStorage.setItem(this.tokenKey, tokens.accessToken);
+      localStorage.setItem(this.tokenKey, tokens.accessToken);
     }
     if (tokens?.refreshToken) {
       sessionStorage.setItem(this.refreshTokenKey, tokens.refreshToken);
+      localStorage.setItem(this.refreshTokenKey, tokens.refreshToken);
     }
     if (user) {
-      sessionStorage.setItem(this.userKey, JSON.stringify(user));
+      const uStr = JSON.stringify(user);
+      sessionStorage.setItem(this.userKey, uStr);
+      localStorage.setItem(this.userKey, uStr);
     }
   }
 
@@ -52,6 +56,9 @@ class PlayerApiClient {
     sessionStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.refreshTokenKey);
     sessionStorage.removeItem(this.userKey);
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
+    localStorage.removeItem(this.userKey);
   }
 
   async request(endpoint, options = {}) {

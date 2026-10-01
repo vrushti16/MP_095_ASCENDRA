@@ -129,11 +129,17 @@ const playerAuth = {
   /* ========================================================================
      Client-side SPA Router & Route Synchronization
      ======================================================================== */
-  updateUrl(path, updateHistory = true) {
+  updateUrl(path, updateHistory = true, replace = false) {
     const target = path.replace(/\/$/, '') || '/';
     const current = window.location.pathname.replace(/\/$/, '') || '/';
     if (updateHistory && target !== current) {
-      window.history.pushState({ path: target }, '', target);
+      if (replace) {
+        window.history.replaceState({ path: target }, '', target);
+      } else {
+        window.history.pushState({ path: target }, '', target);
+      }
+    } else if (replace && target === current) {
+      window.history.replaceState({ path: target }, '', target);
     }
     this.updatePageTitle(target);
   },
@@ -162,6 +168,26 @@ const playerAuth = {
     const normalized = (path || window.location.pathname).replace(/\/$/, '') || '/';
     const token = window.playerApi?.getToken();
 
+    if (token) {
+      // Explorer is already signed in!
+      // If browser navigates back to /login, /register, /forgot-password, or /, prevent modal and stay in realm
+      if (normalized === '/login' || normalized === '/register' || normalized === '/forgot-password' || normalized === '/') {
+        this.hideModal(false);
+        if (window.playerSplash) window.playerSplash.hideSplash();
+        if (window.playerApp) window.playerApp.loadCurrentSection();
+        this.updateUrl('/play', true, true);
+        return;
+      }
+      if (normalized === '/play') {
+        this.hideModal(false);
+        if (window.playerSplash) window.playerSplash.hideSplash();
+        if (window.playerApp) window.playerApp.loadCurrentSection();
+        this.updateUrl('/play', updateHistory, true);
+        return;
+      }
+    }
+
+    // Unauthenticated explorer routing
     if (normalized === '/login') {
       this.showModal(null, 'signin', updateHistory);
     } else if (normalized === '/register') {
@@ -170,18 +196,11 @@ const playerAuth = {
       this.showModal(null, null, updateHistory);
       this.setAuthState('forgot-password', updateHistory);
     } else if (normalized === '/play') {
-      if (token) {
-        this.hideModal(false);
-        if (window.playerSplash) window.playerSplash.hideSplash();
-        if (window.playerApp) window.playerApp.loadCurrentSection();
-        this.updateUrl('/play', updateHistory);
-      } else {
-        this.showModal('Please sign in to enter ASCENDRA.', 'signin', updateHistory);
-      }
+      this.showModal('Please sign in to enter ASCENDRA.', 'signin', updateHistory);
     } else {
       // Root '/' or splash page
       this.hideModal(false);
-      if (!token && window.playerSplash) {
+      if (window.playerSplash) {
         window.playerSplash.showSplash();
       }
       this.updateUrl('/', updateHistory);
@@ -220,6 +239,14 @@ const playerAuth = {
   },
 
   showModal(message = null, targetTab = null, updateHistory = true) {
+    const token = window.playerApi?.getToken();
+    if (token && !message) {
+      // Already authenticated: never pop up modal
+      this.hideModal(false);
+      this.updateUrl('/play', true, true);
+      return;
+    }
+
     if (this.authModal) {
       this.authModal.classList.remove('hidden');
     }
@@ -241,7 +268,7 @@ const playerAuth = {
     this.hideEmbossedAlert();
     if (updateHistory) {
       const token = window.playerApi?.getToken();
-      this.updateUrl(token ? '/play' : '/', true);
+      this.updateUrl(token ? '/play' : '/', true, true);
     }
   },
 
@@ -473,7 +500,7 @@ const playerAuth = {
             enterAscendraBtn.classList.remove('hidden');
             enterAscendraBtn.onclick = () => {
               this.hideModal(false);
-              this.updateUrl('/play', true);
+              this.updateUrl('/play', true, true);
               if (window.playerApp && this.authenticatedUser) {
                 window.playerApp.onAuthenticated(this.authenticatedUser);
               }
@@ -1093,7 +1120,7 @@ const playerAuth = {
       }, data.user);
 
       this.hideModal(false);
-      this.updateUrl('/play', true);
+      this.updateUrl('/play', true, true);
       if (window.playerApp) {
         window.playerApp.onAuthenticated(data.user);
       }
@@ -1274,7 +1301,7 @@ const playerAuth = {
       }, data.user);
 
       this.hideModal(false);
-      this.updateUrl('/play', true);
+      this.updateUrl('/play', true, true);
       if (window.playerApp) {
         window.playerApp.onAuthenticated(data.user);
       }

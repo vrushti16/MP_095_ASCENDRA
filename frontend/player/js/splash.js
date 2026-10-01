@@ -122,7 +122,7 @@ const playerSplash = {
     // Transition from Splash to Player Hub and update route to /play
     this.hideSplash();
     if (window.playerAuth) {
-      window.playerAuth.updateUrl('/play', true);
+      window.playerAuth.updateUrl('/play', true, true);
     }
     if (window.playerApp) {
       window.playerApp.loadCurrentSection();
