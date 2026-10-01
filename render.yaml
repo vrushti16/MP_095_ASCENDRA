@@ -39,7 +39,6 @@ services:
     region: oregon
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
-    preDeployCommand: cd backend && npm run db:migrate && npm run db:seed
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_VERSION
