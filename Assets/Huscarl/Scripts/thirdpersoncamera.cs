@@ -10,21 +10,34 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private float height = 2.5f;
 
     [Header("Mouse")]
-    [SerializeField] private float mouseSensitivity = 2.5f;
+    [SerializeField] private float mouseSensitivity = 5f;
     [SerializeField] private float minPitch = -15f;
     [SerializeField] private float maxPitch = 50f;
 
     [Header("Mouse Smoothing")]
-    [SerializeField] private float mouseSmoothTime = 0.08f;
+    [SerializeField] private float mouseSmoothTime = 0.05f;
 
     [Header("Camera Smoothing")]
-    [SerializeField] private float positionSmoothTime = 0.08f;
-    [SerializeField] private float rotationSmoothSpeed = 12f;
+    [SerializeField] private float positionSmoothTime = 0.06f;
+    [SerializeField] private float rotationSmoothSpeed = 15f;
 
     [Header("Zoom")]
     [SerializeField] private float zoomSpeed = 2f;
     [SerializeField] private float minDistance = 3f;
     [SerializeField] private float maxDistance = 9f;
+
+    public Transform Target { get => target; set => target = value; }
+    public float Distance { get => distance; set => distance = value; }
+    public float Height { get => height; set => height = value; }
+    public float MouseSensitivity { get => mouseSensitivity; set => mouseSensitivity = value; }
+    public float MinPitch { get => minPitch; set => minPitch = value; }
+    public float MaxPitch { get => maxPitch; set => maxPitch = value; }
+    public float MouseSmoothTime { get => mouseSmoothTime; set => mouseSmoothTime = value; }
+    public float PositionSmoothTime { get => positionSmoothTime; set => positionSmoothTime = value; }
+    public float RotationSmoothSpeed { get => rotationSmoothSpeed; set => rotationSmoothSpeed = value; }
+    public float ZoomSpeed { get => zoomSpeed; set => zoomSpeed = value; }
+    public float MinDistance { get => minDistance; set => minDistance = value; }
+    public float MaxDistance { get => maxDistance; set => maxDistance = value; }
 
     private float targetYaw;
     private float targetPitch;
@@ -157,12 +170,64 @@ public class ThirdPersonCamera : MonoBehaviour
         );
     }
 
+    private void OnDisable()
+    {
+        yawVelocity = 0f;
+        pitchVelocity = 0f;
+        positionVelocity = Vector3.zero;
+    }
+
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (hasFocus)
+        if (hasFocus && enabled)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    /// <summary>
+    /// Enables or disables third-person camera control and manages cursor lock mode.
+    /// </summary>
+    public void SetCameraActive(bool active)
+    {
+        enabled = active;
+        if (!active)
+        {
+            yawVelocity = 0f;
+            pitchVelocity = 0f;
+            positionVelocity = Vector3.zero;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            SnapToTarget();
+        }
+    }
+
+    /// <summary>
+    /// Snaps camera immediately behind the target, resetting any interpolation velocities.
+    /// </summary>
+    public void SnapToTarget()
+    {
+        if (target == null) return;
+
+        targetYaw = target.eulerAngles.y;
+        targetPitch = 15f;
+        currentYaw = targetYaw;
+        currentPitch = targetPitch;
+        yawVelocity = 0f;
+        pitchVelocity = 0f;
+        positionVelocity = Vector3.zero;
+
+        Quaternion cameraRotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
+        Vector3 targetPosition = target.position + Vector3.up * height;
+        transform.position = targetPosition + cameraRotation * Vector3.back * distance;
+
+        Vector3 lookPosition = target.position + Vector3.up * 1.2f;
+        transform.rotation = Quaternion.LookRotation(lookPosition - transform.position);
     }
 }

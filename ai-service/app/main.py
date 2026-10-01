@@ -2,11 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import health, puzzles
+from app.routers import health, puzzles, environments
 
 app = FastAPI(
     title="ASCENDRA AI Puzzle Generation Service",
-    description="Authoritative AI microservice for ASCENDRA generating multi-modal, non-coding educational challenges.",
+    description="Authoritative AI microservice for ASCENDRA generating multi-modal, non-coding educational challenges and 3D environments.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -24,6 +24,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router)
 app.include_router(puzzles.router)
+app.include_router(environments.router)
 
 if __name__ == "__main__":
     import uvicorn

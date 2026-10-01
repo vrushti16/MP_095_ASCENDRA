@@ -15,15 +15,16 @@ async function seedDemoData() {
 
     // 2. Insert or Update Admin User
     const adminRes = await client.query(
-      `INSERT INTO users (email, password_hash, name, role, last_login)
-       VALUES ($1, $2, $3, 'admin', NOW())
+      `INSERT INTO users (email, password_hash, name, role, email_verified_at, last_login)
+       VALUES ($1, $2, $3, 'admin', NOW(), NOW())
        ON CONFLICT (email) DO UPDATE
        SET password_hash = EXCLUDED.password_hash,
            role = 'admin',
            name = EXCLUDED.name,
+           email_verified_at = NOW(),
            last_login = NOW()
        RETURNING id;`,
-      ['admin@ascendra.edu', adminPasswordHash, 'System Administrator']
+      ['ascendra.admin@gmail.com', adminPasswordHash, 'System Administrator']
     );
     const adminId = adminRes.rows[0].id;
 
@@ -37,17 +38,19 @@ async function seedDemoData() {
 
     // 3. Insert or Update Primary Demo Player: Aria
     const playerRes = await client.query(
-      `INSERT INTO users (email, password_hash, name, role, last_login)
-       VALUES ($1, $2, $3, 'player', NOW())
+      `INSERT INTO users (email, password_hash, name, role, email_verified_at, last_login)
+       VALUES ($1, $2, $3, 'player', NOW(), NOW())
        ON CONFLICT (email) DO UPDATE
        SET password_hash = EXCLUDED.password_hash,
            role = 'player',
            name = EXCLUDED.name,
+           email_verified_at = NOW(),
            last_login = NOW()
        RETURNING id;`,
-      ['player@ascendra.game', playerPasswordHash, 'Aria the Cryptseeker']
+      ['player@gmail.com', playerPasswordHash, 'Aria the Cryptseeker']
     );
     const playerId = playerRes.rows[0].id;
+
 
     await client.query(
       `INSERT INTO player_profiles (user_id, level, experience, score, health, max_health)

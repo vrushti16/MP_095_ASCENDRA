@@ -8,4 +8,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Gameplay/Stage_1_1_Village.unity
     guid: f0037133be7819046829374c0686679e
+  - enabled: 1
+    path: Assets/Scenes/Gameplay/StaticSecondPuzzleScene.unity
+    guid: a4511c72b80cfb24da8e92c31b41811f
+  - enabled: 1
+    path: Assets/Scenes/Gameplay/StaticThirdPuzzleScene.unity
+    guid: 9dcf68629e1ecfb4b88fd5fea1352886
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

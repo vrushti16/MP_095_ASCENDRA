@@ -61,7 +61,7 @@ app.use('/play', express.static(playerStaticDir));
 app.use(express.static(playerStaticDir));
 
 // Serve Unity WebGL Build with proper Gzip header decompression support
-app.use('/webgl', express.static(path.join(__dirname, '..', '..', '..', 'Builds', 'WebGL'), {
+app.use('/webgl', express.static(path.join(__dirname, '..', '..', 'Builds', 'WebGL'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.gz')) {
       res.setHeader('Content-Encoding', 'gzip');

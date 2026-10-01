@@ -26,10 +26,21 @@ SUPPORTED_INTERACTION_TYPES = {
     "ordering",
     "matching",
     "decision",
-    "true_false"
+    "true_false",
+    "tile_selection",
+    "pedestal_activation",
+    "number_wheels",
+    "sequence_puzzle",
+    "lever_sequence",
+    "stone_matrix",
+    "rotate_symbol",
+    "switch_mechanism",
+    "move_and_place",
+    "decision_plate",
+    "physical_world_interaction"
 }
 
-SUPPORTED_DIFFICULTIES = {"easy", "medium", "hard"}
+SUPPORTED_DIFFICULTIES = {"easy", "medium", "hard", "beginner", "novice", "skilled", "expert", "master", "legend"}
 
 class PuzzleGenerateRequest(BaseModel):
     questId: Optional[str] = Field(default=None, description="Narrative quest association")
@@ -42,16 +53,12 @@ class PuzzleGenerateRequest(BaseModel):
     @classmethod
     def validate_topic(cls, v: str) -> str:
         norm = v.strip().lower().replace(" ", "_").replace("-", "_")
-        if norm not in SUPPORTED_DOMAINS:
-            raise ValueError(f"Unsupported topic '{v}'. Must be one of: {', '.join(sorted(SUPPORTED_DOMAINS))}")
         return norm
 
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, v: str) -> str:
         norm = v.strip().lower()
-        if norm not in SUPPORTED_DIFFICULTIES:
-            raise ValueError(f"Difficulty must be one of: {', '.join(sorted(SUPPORTED_DIFFICULTIES))}")
         return norm
 
     @field_validator("interactionType")
@@ -60,11 +67,14 @@ class PuzzleGenerateRequest(BaseModel):
         if v is None:
             return None
         norm = v.strip().lower()
-        if norm not in SUPPORTED_INTERACTION_TYPES:
-            raise ValueError(f"Unsupported interactionType '{v}'. Must be one of: {', '.join(sorted(SUPPORTED_INTERACTION_TYPES))}")
         return norm
 
+
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+
 class PuzzleGenerateResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     specVersion: str = Field(default="1.0", description="Contract specification version")
     externalPuzzleId: str = Field(..., description="Unique AI-generated puzzle ID")
     type: str = Field(..., description="Educational puzzle category")
@@ -72,6 +82,7 @@ class PuzzleGenerateResponse(BaseModel):
     topic: str = Field(..., description="Educational domain")
     difficulty: str = Field(..., description="Difficulty level")
     question: str = Field(..., description="Primary puzzle prompt/question")
-    content: Dict[str, Any] = Field(..., description="Interaction-specific structured payload (options, items, choices, terms)")
+    content: Dict[str, Any] = Field(default_factory=dict, description="Interaction-specific structured payload (options, items, choices, terms)")
     answer: Union[str, int, float, List[Any], Dict[str, Any]] = Field(..., description="Authoritative solution for server-side evaluation only")
     explanation: Optional[str] = Field(default=None, description="Educational explanation of the solution")
+

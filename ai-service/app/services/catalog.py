@@ -176,6 +176,31 @@ OFFLINE_CATALOG: List[Dict[str, Any]] = [
         },
         "answer": "Ad Hominem",
         "explanation": "An Ad Hominem fallacy occurs when one attacks the person making an argument instead of addressing the argument itself."
+    },
+    # 11. Aptitude — 3D Stone Tile Selection (tile_selection)
+    {
+        "type": "number_matrix",
+        "interactionType": "tile_selection",
+        "topic": "aptitude",
+        "difficulty": "medium",
+        "question": "Align the missing stone tile value (??) in the 3x3 numerical resonance grid.",
+        "content": {
+            "title": "Ancient Stone Number Matrix",
+            "layout": {"rows": 3, "columns": 3},
+            "elements": [
+                {"id": "t1", "value": "12", "label": "12", "type": "number_tile"},
+                {"id": "t2", "value": "18", "label": "18", "type": "number_tile"},
+                {"id": "t3", "value": "24", "label": "24", "type": "number_tile"},
+                {"id": "t4", "value": "30", "label": "30", "type": "number_tile"},
+                {"id": "t5", "value": "??", "label": "??", "type": "number_tile"},
+                {"id": "t6", "value": "42", "label": "42", "type": "number_tile"},
+                {"id": "t7", "value": "48", "label": "48", "type": "number_tile"},
+                {"id": "t8", "value": "54", "label": "54", "type": "number_tile"},
+                {"id": "t9", "value": "60", "label": "60", "type": "number_tile"}
+            ]
+        },
+        "answer": "36",
+        "explanation": "Each stone tile increases by a steady harmonic increment of 6 (12, 18, 24, 30, 36, 42, 48, 54, 60)."
     }
 ]
 

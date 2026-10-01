@@ -1,0 +1,159 @@
+{
+  "puzzleId": "PZ-VILLAGE-001",
+  "title": "Whispering Monoliths of Ascendra Village",
+  "category": "aptitude",
+  "taskType": "aptitude",
+  "difficulty": "medium",
+  "difficulty_level": 3,
+  "puzzleType": "number_matrix",
+  "interactionType": "tile_selection",
+  "theme": "medieval",
+  "environment": {
+    "type": "village_ruins",
+    "theme": "medieval_ruins",
+    "primary_asset_pack": "RPGPP_LT",
+    "secondary_asset_packs": [
+      "LOW_POLY_MEDIEVAL_PROPS",
+      "STYL_ROCKS_MAGIC"
+    ],
+    "bounds": {
+      "x": 10.0,
+      "y": 4.0,
+      "z": 10.0
+    },
+    "lighting": {
+      "type": "point",
+      "color": "#FFE0B2",
+      "intensity": 1.5,
+      "range": 15.0
+    },
+    "atmosphere": {
+      "flanking_torches": true,
+      "torch_prefab": "TorchFire"
+    }
+  },
+  "story": {
+    "context": "An ancient stone resonance matrix lies dormant near the village courtyard, uncovered from beneath the moss and ivy.",
+    "discovery": "When the harmonic balance is restored, ancient azure energy surges through the rune carvings to open the pathway."
+  },
+  "objective": {
+    "type": "mechanism_activation",
+    "description": "Inspect the 3x3 stone matrix and select the missing harmonic rune (??) that completes the ascending sequence (+6 progression)."
+  },
+  "learning_integration": {
+    "concept": "Arithmetic Progression & Numerical Pattern Deduction",
+    "game_representation": "A 3x3 matrix of carved stone monuments and glowing magic monoliths",
+    "player_action": "Deduce the missing progression term (+6) and select the central rune monument containing 36"
+  },
+  "mechanism": {
+    "type": "stone_matrix",
+    "mechanism_type": "StoneMatrixPlatform",
+    "stages": 1,
+    "interaction_model": "physical_world_interaction"
+  },
+  "layout": {
+    "rows": 3,
+    "columns": 3,
+    "spacing_x": 2.2,
+    "spacing_z": 2.2
+  },
+  "elements": [
+    {
+      "id": "t1",
+      "value": "12",
+      "label": "Rune 12",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_1",
+      "isInteractable": true
+    },
+    {
+      "id": "t2",
+      "value": "18",
+      "label": "Rune 18",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_3",
+      "isInteractable": true
+    },
+    {
+      "id": "t3",
+      "value": "24",
+      "label": "Rune 24",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_1",
+      "isInteractable": true
+    },
+    {
+      "id": "t4",
+      "value": "30",
+      "label": "Rune 30",
+      "type": "magic_rock",
+      "semanticType": "MagicRock_1",
+      "isInteractable": true
+    },
+    {
+      "id": "t5",
+      "value": "??",
+      "label": "Missing Rune",
+      "type": "magic_rock",
+      "semanticType": "MagicRock_4",
+      "target_value": "36",
+      "isInteractable": true
+    },
+    {
+      "id": "t6",
+      "value": "42",
+      "label": "Rune 42",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_1",
+      "isInteractable": true
+    },
+    {
+      "id": "t7",
+      "value": "48",
+      "label": "Rune 48",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_3",
+      "isInteractable": true
+    },
+    {
+      "id": "t8",
+      "value": "54",
+      "label": "Rune 54",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_1",
+      "isInteractable": true
+    },
+    {
+      "id": "t9",
+      "value": "60",
+      "label": "Rune 60",
+      "type": "rune_stone",
+      "semanticType": "RuneStone_3",
+      "isInteractable": true
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue_01",
+      "type": "environmental_mural",
+      "location": "north_wall",
+      "content": "The stone runes resonate in steady ascending intervals of six.",
+      "discoverable": true
+    }
+  ],
+  "answer": "36",
+  "solution": "36",
+  "explanation": "Each tile value increases by 6 across the grid: 12, 18, 24, 30, 36, 42, 48, 54, 60. The central missing tile is 36.",
+  "validation": {
+    "type": "state_based",
+    "validation_rule": "sequence_match",
+    "required_state": {
+      "t5": "36"
+    },
+    "allow_retry": true
+  },
+  "rewards": {
+    "xp": 40,
+    "score": 100
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "puzzleId": "PZ-SYMBOL-004",
+  "title": "Symbol Alignment Puzzle",
+  "category": "pattern_recognition",
+  "taskType": "data_science",
+  "topic": "Data Science / Pattern Recognition",
+  "difficulty": "medium",
+  "difficulty_level": 3,
+  "puzzleType": "pattern",
+  "interactionType": "concentric_ring_rotation",
+  "theme": "ancient_ruins",
+  "environment": {
+    "type": "overgrown_stone_wall",
+    "theme": "ancient_mossy_temple",
+    "primary_asset_pack": "CATBORG_STUDIO_DUNGEON",
+    "secondary_asset_packs": [
+      "RPGPP_LT",
+      "STYL_ROCKS_MAGIC"
+    ],
+    "bounds": {
+      "x": 8.0,
+      "y": 6.0,
+      "z": 4.0
+    },
+    "lighting": {
+      "type": "directional_with_flanking_torches",
+      "color": "#FFE2B8",
+      "intensity": 1.4,
+      "ambient_color": "#2A3830"
+    }
+  },
+  "story": {
+    "context": "Embedded into an ancient moss-covered ruin wall is a concentric celestial stone dial. Ancient scholars carved a relational pattern deduction tablet above it.",
+    "discovery": "When the missing geometric symbol is aligned with the cosmic focus, the central crystal unlocks ancient data archives."
+  },
+  "objective": {
+    "type": "symbol_alignment",
+    "description": "Observe the pattern on the wall: [ ○ -> △ | □ -> ☾ ] and [ ○ -> △ | ? -> ☾ ]. Rotate the rings to complete the correct pattern by aligning the missing symbol (Square) to the top focus."
+  },
+  "learning_integration": {
+    "concept": "Pattern Recognition, Categorical Sequence Mapping & Symbolic Logic",
+    "game_representation": "A concentric dual-ring stone dial mechanism embedded in an ancient overgrown temple wall",
+    "player_action": "Deduce the missing symbol (Square) and rotate the stone rings using A / D keys to lock alignment"
+  },
+  "mechanism": {
+    "type": "concentric_symbol_dial",
+    "stages": 1,
+    "symbols": [ "Circle", "Triangle", "Square", "Moon", "Wave", "Diamond" ],
+    "target_symbol": "Square",
+    "target_index": 2
+  },
+  "clues": [
+    {
+      "id": "matrix_tablet",
+      "type": "carved_stone_tablet",
+      "location": "upper_wall_center",
+      "content": "[ ○ -> △ | □ -> ☾ ]\n[ ○ -> △ | ? -> ☾ ]\nHint: Follow the pattern shown above. Find the missing symbol."
+    }
+  ],
+  "answer": "Square",
+  "validation": {
+    "type": "state_based",
+    "validation_rule": "target_symbol_aligned",
+    "required_symbol": "Square",
+    "target_ring_index": 2,
+    "allow_retry": true
+  }
+}

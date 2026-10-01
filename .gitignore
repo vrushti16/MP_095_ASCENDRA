@@ -159,4 +159,6 @@ out/
 # Operating System & IDE
 .DS_Store
 Thumbs.db
+.vscode/
+scratch/
 
