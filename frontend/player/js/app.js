@@ -27,17 +27,24 @@ class PlayerApp {
       }
     });
 
-    // Hash-based direct link routing
-    window.addEventListener('hashchange', () => {
-      const hash = window.location.hash.replace('#', '').trim();
-      if (this.sections.includes(hash)) {
-        this.navigateTo(hash);
+    // Browser history backward & forward navigation
+    const handleHashOrPop = () => {
+      const hash = window.location.hash.replace('#', '').trim() || 'dashboard';
+      if (this.sections.includes(hash) && hash !== this.currentSection) {
+        this.navigateTo(hash, null, false);
       }
-    });
+    };
+    window.addEventListener('hashchange', handleHashOrPop);
+    window.addEventListener('popstate', handleHashOrPop);
 
     const initialHash = window.location.hash.replace('#', '').trim();
     if (this.sections.includes(initialHash)) {
       this.currentSection = initialHash;
+    } else {
+      this.currentSection = 'dashboard';
+      if (!window.location.hash) {
+        window.history.replaceState({ section: 'dashboard' }, '', '#dashboard');
+      }
     }
 
     // Mobile nav toggle
@@ -89,13 +96,19 @@ class PlayerApp {
     }
   }
 
-  navigateTo(sectionId, contextParam = null) {
+  navigateTo(sectionId, contextParam = null, pushHistory = true) {
     if (!this.sections.includes(sectionId)) return;
 
     this.currentSection = sectionId;
 
-    if (window.location.hash !== `#${sectionId}`) {
-      window.history.replaceState(null, '', `#${sectionId}`);
+    if (pushHistory) {
+      if (window.location.hash !== `#${sectionId}`) {
+        window.history.pushState({ section: sectionId }, '', `#${sectionId}`);
+      }
+    } else {
+      if (window.location.hash !== `#${sectionId}`) {
+        window.history.replaceState({ section: sectionId }, '', `#${sectionId}`);
+      }
     }
 
     // Update active nav states
@@ -154,7 +167,7 @@ class PlayerApp {
     if (window.playerSplash) {
       window.playerSplash.hideSplash();
     }
-    this.navigateTo('dashboard');
+    this.navigateTo('dashboard', null, false);
   }
 
   async renderProfile() {

@@ -132,14 +132,17 @@ const playerAuth = {
   updateUrl(path, updateHistory = true, replace = false) {
     const target = path.replace(/\/$/, '') || '/';
     const current = window.location.pathname.replace(/\/$/, '') || '/';
+    const hash = window.location.hash || '';
+    const fullTarget = (target === '/play' && hash) ? `${target}${hash}` : target;
+
     if (updateHistory && target !== current) {
       if (replace) {
-        window.history.replaceState({ path: target }, '', target);
+        window.history.replaceState({ path: target }, '', fullTarget);
       } else {
-        window.history.pushState({ path: target }, '', target);
+        window.history.pushState({ path: target }, '', fullTarget);
       }
-    } else if (replace && target === current) {
-      window.history.replaceState({ path: target }, '', target);
+    } else if (replace) {
+      window.history.replaceState({ path: target }, '', fullTarget);
     }
     this.updatePageTitle(target);
   },
@@ -174,15 +177,15 @@ const playerAuth = {
       if (normalized === '/login' || normalized === '/register' || normalized === '/forgot-password' || normalized === '/') {
         this.hideModal(false);
         if (window.playerSplash) window.playerSplash.hideSplash();
-        if (window.playerApp) window.playerApp.loadCurrentSection();
+        const currentHash = window.location.hash.replace('#', '').trim() || 'dashboard';
         this.updateUrl('/play', true, true);
+        if (window.playerApp) window.playerApp.navigateTo(currentHash, null, false);
         return;
       }
       if (normalized === '/play') {
+        // Inside realm: keep auth modal & splash hidden, allow playerApp to handle section backward/forward
         this.hideModal(false);
         if (window.playerSplash) window.playerSplash.hideSplash();
-        if (window.playerApp) window.playerApp.loadCurrentSection();
-        this.updateUrl('/play', updateHistory, true);
         return;
       }
     }
